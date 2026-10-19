@@ -60,42 +60,44 @@ const URL_VIDEO = "";
 
 interface Settings {
     template: string; guide: boolean;
-    fillOpacity: number; lineWidth: number;
-    markers: boolean; markerSize: number; markerColor: string;
+    fillOpacity: number; lineWidth: number; curve: boolean;
+    markers: boolean; markerSize: number; markerShape: string; markerColor: string;
     labels: boolean; labelFont: number; labelColor: string;
     scaleMode: string; zero: boolean; auto: boolean; min: number; max: number; rings: number; reversed: string;
-    gridShape: string; gridColor: string; spokes: boolean; ringLabels: boolean; gridFont: number; gridLabelColor: string;
+    gridShape: string; gridColor: string; spokes: boolean; rotation: number; ringLabels: boolean; gridFont: number; gridLabelColor: string;
     axLabels: boolean; axFont: number; axColor: string; axFamily: string; axBold: boolean; axMaxChars: number;
     orderBy: string; descending: boolean;
     targetColor: string; showGap: boolean; goodColor: string; badColor: string;
     bands: boolean; bandLow: number; bandHigh: number; bandLowColor: string; bandMidColor: string; bandHighColor: string; bandOpacity: number;
+    refShow: boolean; refValue: number; refLabel: string; refColor: string;
     groupFont: number; groupColor: string;
     notes: boolean; noteFont: number; noteColor: string;
     axesMean: boolean;
     legend: boolean; legendPos: string; legendFont: number; legendColor: string;
     table: boolean; tableFont: number; tableColor: string; tableHeaderBg: string; tableHeaderColor: string; tableBanding: string;
-    smCols: number; smGap: number; smTitleSize: number; smTitleColor: string; smTitleBold: boolean; smTitleAlign: string;
+    smBySeries: boolean; smCols: number; smGap: number; smTitleSize: number; smTitleColor: string; smTitleBold: boolean; smTitleAlign: string;
     smBackground: string; smBorder: boolean; smBorderColor: string;
     background: string;
 }
 
 const DEFAULTS: Settings = {
     template: "clean", guide: true,
-    fillOpacity: 18, lineWidth: 2,
-    markers: true, markerSize: 3.5, markerColor: "",
+    fillOpacity: 18, lineWidth: 2, curve: false,
+    markers: true, markerSize: 3.5, markerShape: "circle", markerColor: "",
     labels: false, labelFont: 10, labelColor: "#3D3929",
     scaleMode: "common", zero: true, auto: true, min: 0, max: 5, rings: 5, reversed: "",
-    gridShape: "polygon", gridColor: "#D6D4D0", spokes: true, ringLabels: true, gridFont: 9, gridLabelColor: "#83827D",
+    gridShape: "polygon", gridColor: "#D6D4D0", spokes: true, rotation: 0, ringLabels: true, gridFont: 9, gridLabelColor: "#83827D",
     axLabels: true, axFont: 11, axColor: "#3D3929", axFamily: "", axBold: false, axMaxChars: 0,
     orderBy: "data", descending: false,
     targetColor: "#3D3929", showGap: true, goodColor: "#107C10", badColor: "#C4314B",
     bands: false, bandLow: 50, bandHigh: 80, bandLowColor: "#E8A39B", bandMidColor: "#F2D38B", bandHighColor: "#A9D8B8", bandOpacity: 30,
+    refShow: false, refValue: 3, refLabel: "", refColor: "#B4541C",
     groupFont: 11, groupColor: "#2B6CB0",
     notes: true, noteFont: 9, noteColor: "#605E5C",
     axesMean: false,
     legend: true, legendPos: "top", legendFont: 11, legendColor: "#605E5C",
     table: false, tableFont: 11, tableColor: "#3D3929", tableHeaderBg: "#F3F2F1", tableHeaderColor: "", tableBanding: "",
-    smCols: 0, smGap: 8, smTitleSize: 12, smTitleColor: "#3D3929", smTitleBold: true, smTitleAlign: "left",
+    smBySeries: false, smCols: 0, smGap: 8, smTitleSize: 12, smTitleColor: "#3D3929", smTitleBold: true, smTitleAlign: "left",
     smBackground: "", smBorder: false, smBorderColor: "#E1DFDD",
     background: "",
 };
@@ -117,6 +119,7 @@ const TEMPLATES: Record<string, Partial<Settings>> = {
 
 /** Tonos de gris para el estilo IBCS: las series se distinguen por gris y trazo, no por colores del tema. */
 const IBCS_GREYS = ["#262626", "#7F7F7F", "#BFBFBF", "#404040", "#A6A6A6", "#595959"];
+const MARKER_SHAPES = ["circle", "square", "diamond", "triangle"];
 const HC_DASH = ["", "6 3", "2 3", "8 3 2 3", "1 2", "10 4"];
 
 type Objects = powerbi.DataViewObjects | undefined;
@@ -134,12 +137,12 @@ function readSettings(objects: Objects): Settings {
     };
     return {
         template: tplName, guide: pick("style", "guide", "guide"),
-        fillOpacity: pick("series", "fillOpacity", "fillOpacity"), lineWidth: pick("series", "lineWidth", "lineWidth"),
-        markers: pick("markers", "show", "markers"), markerSize: pick("markers", "size", "markerSize"), markerColor: pick("markers", "fill", "markerColor"),
+        fillOpacity: pick("series", "fillOpacity", "fillOpacity"), lineWidth: pick("series", "lineWidth", "lineWidth"), curve: pick("series", "curve", "curve"),
+        markers: pick("markers", "show", "markers"), markerSize: pick("markers", "size", "markerSize"), markerShape: pick("markers", "shape", "markerShape"), markerColor: pick("markers", "fill", "markerColor"),
         labels: pick("labels", "show", "labels"), labelFont: pick("labels", "fontSize", "labelFont"), labelColor: pick("labels", "color", "labelColor"),
         scaleMode: pick("scale", "mode", "scaleMode"), zero: pick("scale", "zero", "zero"), auto: pick("scale", "auto", "auto"),
         min: pick("scale", "min", "min"), max: pick("scale", "max", "max"), rings: pick("scale", "rings", "rings"), reversed: pick("scale", "reversed", "reversed"),
-        gridShape: pick("grid", "shape", "gridShape"), gridColor: pick("grid", "color", "gridColor"), spokes: pick("grid", "spokes", "spokes"),
+        gridShape: pick("grid", "shape", "gridShape"), gridColor: pick("grid", "color", "gridColor"), spokes: pick("grid", "spokes", "spokes"), rotation: pick("grid", "rotation", "rotation"),
         ringLabels: pick("grid", "ringLabels", "ringLabels"), gridFont: pick("grid", "fontSize", "gridFont"), gridLabelColor: pick("grid", "labelColor", "gridLabelColor"),
         axLabels: pick("axisLabels", "show", "axLabels"), axFont: pick("axisLabels", "fontSize", "axFont"), axColor: pick("axisLabels", "color", "axColor"),
         axFamily: pick("axisLabels", "fontFamily", "axFamily"), axBold: pick("axisLabels", "bold", "axBold"), axMaxChars: pick("axisLabels", "maxChars", "axMaxChars"),
@@ -149,6 +152,8 @@ function readSettings(objects: Objects): Settings {
         bands: pick("bands", "show", "bands"), bandLow: pick("bands", "low", "bandLow"), bandHigh: pick("bands", "high", "bandHigh"),
         bandLowColor: pick("bands", "lowColor", "bandLowColor"), bandMidColor: pick("bands", "midColor", "bandMidColor"),
         bandHighColor: pick("bands", "highColor", "bandHighColor"), bandOpacity: pick("bands", "opacity", "bandOpacity"),
+        refShow: pick("reference", "show", "refShow"), refValue: pick("reference", "value", "refValue"),
+        refLabel: pick("reference", "label", "refLabel"), refColor: pick("reference", "color", "refColor"),
         groupFont: pick("axisGroups", "fontSize", "groupFont"), groupColor: pick("axisGroups", "color", "groupColor"),
         notes: pick("annotations", "show", "notes"), noteFont: pick("annotations", "fontSize", "noteFont"), noteColor: pick("annotations", "color", "noteColor"),
         axesMean: pick("center", "axesMean", "axesMean"),
@@ -157,7 +162,7 @@ function readSettings(objects: Objects): Settings {
         table: pick("valueTable", "show", "table"), tableFont: pick("valueTable", "fontSize", "tableFont"),
         tableColor: pick("valueTable", "color", "tableColor"), tableHeaderBg: pick("valueTable", "headerBackground", "tableHeaderBg"),
         tableHeaderColor: pick("valueTable", "headerColor", "tableHeaderColor"), tableBanding: pick("valueTable", "banding", "tableBanding"),
-        smCols: pick("smallMultiples", "columns", "smCols"), smGap: pick("smallMultiples", "gap", "smGap"),
+        smBySeries: pick("smallMultiples", "bySeries", "smBySeries"), smCols: pick("smallMultiples", "columns", "smCols"), smGap: pick("smallMultiples", "gap", "smGap"),
         smTitleSize: pick("smallMultiples", "titleSize", "smTitleSize"), smTitleColor: pick("smallMultiples", "titleColor", "smTitleColor"),
         smTitleBold: pick("smallMultiples", "titleBold", "smTitleBold"), smTitleAlign: pick("smallMultiples", "titleAlign", "smTitleAlign"),
         smBackground: pick("smallMultiples", "background", "smBackground"), smBorder: pick("smallMultiples", "border", "smBorder"),
@@ -417,7 +422,8 @@ export class Visual implements IVisual {
         add(s.scaleMode === "perAxis" || s.scaleMode === "target" || this.roleBound("scaleMin") || this.roleBound("scaleMax"), "scale", "Feat_scale", "scale per axis");
         add(!!s.reversed.trim(), "reversed", "Feat_reversed", "reversed axes");
         add(s.bands, "bands", "Feat_bands", "bands");
-        add(this.roleBound("panel"), "panel", "Feat_panel", "small multiples");
+        add(this.roleBound("panel") || (s.smBySeries && this.seriesBound), "panel", "Feat_panel", "small multiples");
+        add(s.refShow, "reference", "Feat_reference", "reference ring");
         add(this.roleBound("axisGroup"), "groups", "Feat_groups", "axis groups");
         add(this.roleBound("note"), "notes", "Feat_notes", "annotations");
         add(this.ruleColorsUsed, "rules", "Feat_rules", "color rules");
@@ -431,6 +437,7 @@ export class Visual implements IVisual {
         if (this.proActive) return this.s;
         const s = { ...this.s };
         s.scaleMode = "common"; s.reversed = ""; s.bands = false; s.table = false; s.axesMean = false;
+        s.refShow = false; s.smBySeries = false;
         return s;
     }
 
@@ -604,6 +611,19 @@ export class Visual implements IVisual {
             const found = [...vcols.map((c, k) => where(c, "values[" + k + "]")), ...cats.map((c, k) => where(c, "categories[" + k + "]")),
                 ...groups.map((g, k) => (g.objects?.["markers"] ? "group[" + k + "]" : ""))].filter(Boolean);
             (this as any).diagRule = "DIAG regla fx en: " + (found.join(", ") || "ningún sitio") + " · metadata.markers=" + JSON.stringify(dv.metadata?.objects?.["markers"] ?? null).slice(0, 120);
+        }
+        if (pro && s.smBySeries && seriesBound && !panelCol && this.series.length > 1) {
+            // Un radar por serie, sin campo de paneles: misma escala, cada panel con su serie y su color.
+            const old = Array.from(this.pts.values());
+            this.pts.clear(); this.idToPt.clear();
+            for (const p of old) {
+                p.panel = this.series[p.si].name;
+                p.key = p.panel + "\u0001" + p.axis + "\u0001" + p.si;
+                this.pts.set(p.key, p);
+                for (const id of p.ids) this.idToPt.set(this.keyOf(id), p.key);
+            }
+            panelSet.length = 0;
+            this.series.forEach(x => panelSet.push(x.name));
         }
         if (panelSet.length) this.panels = panelSet;
         let axes = Array.from(axisIndex.values());
@@ -912,7 +932,8 @@ export class Visual implements IVisual {
         const padX = showAx ? longest + 10 : 8, padY = showAx ? axFont * (twoLines ? 2.8 : 1.6) + 8 : 8;
         const R = Math.max(10, Math.min((W - 2 * padX) / 2, (H - 2 * padY) / 2) - groupSpace);
         const cx = W / 2, cy = y0 + H / 2;
-        const ang = (j: number) => -Math.PI / 2 + 2 * Math.PI * j / n;
+        const rot = (Number.isFinite(s.rotation) ? s.rotation : 0) * Math.PI / 180;
+        const ang = (j: number) => -Math.PI / 2 + rot + 2 * Math.PI * j / n;
         const at = (f: number, j: number): [number, number] => [cx + Math.cos(ang(j)) * R * f, cy + Math.sin(ang(j)) * R * f];
         const ring = (f: number) => s.gridShape === "circle"
             ? `M${cx - R * f},${cy}a${R * f},${R * f} 0 1,0 ${2 * R * f},0a${R * f},${R * f} 0 1,0 ${-2 * R * f},0Z`
@@ -938,6 +959,15 @@ export class Visual implements IVisual {
             this.el("path", { d: ring(frac(0, sc0, false)), fill: "none", stroke: hc.on ? hc.fg : "#83827D", "stroke-width": 1.2, "stroke-dasharray": "4 3" }, grid);
         }
         if (s.spokes) axes.forEach((_, j) => { const [x, y] = at(1, j); this.el("line", { x1: cx, y1: cy, x2: x, y2: y, stroke: gc, "stroke-width": 1, "stroke-opacity": hc.on ? 0.5 : 1 }, grid); });
+
+        // Anillo de referencia (Pro): un valor de la escala común marcado en todos los ejes ("mínimo exigido: 3").
+        if (s.refShow && !perAxis && Number.isFinite(s.refValue)) {
+            const f = frac(s.refValue, sc0, false);
+            this.el("path", { d: ring(f), fill: "none", stroke: hc.on ? hc.fg : s.refColor, "stroke-width": 1.5, "stroke-dasharray": "5 3" }, grid);
+            const [x, y] = at(f, 0);
+            const t = this.el("text", { x: x - 4, y: y - 3, "text-anchor": "end", "font-size": clamp(s.gridFont, 6, 20), "font-weight": 600, fill: hc.on ? hc.fg : s.refColor }, grid);
+            t.textContent = (s.refLabel ? s.refLabel + " " : "") + (s.scaleMode === "target" ? Math.round(s.refValue) + "%" : this.seriesFmt(0)(s.refValue));
+        }
 
         // Valores de los anillos: en el primer radio con escala común; en cada radio con escala por eje.
         if (s.ringLabels && !compact) {
@@ -1045,16 +1075,17 @@ export class Visual implements IVisual {
         for (const si of order) {
             const se = this.series[si];
             const color = hc.on ? hc.fg : se.color;
+            if (!axes.some(a => ptOf(a.key, si))) continue;   // un radar por serie: cada panel solo tiene la suya
             const pts = axes.map((a, j) => { const p = ptOf(a.key, si); const v = val(p, p?.value ?? null); return v === null ? null : at(frac(v, scales.get(a.key), a.reversed), j); });
             const sg = this.el("g", { "data-shape": se.key, class: "tcrd-shape" }, shapes);
             const complete = pts.every(p => p !== null);
             const dash = hc.on ? HC_DASH[si % HC_DASH.length] : "";
-            if (complete && fo > 0 && !hc.on) this.el("path", { d: this.pathOf(pts), fill: color, "fill-opacity": this.hasHighlights ? fo * 0.4 : fo, stroke: "none" }, sg);
-            this.el("path", { d: this.pathOf(pts), fill: "none", stroke: color, "stroke-width": lw, "stroke-linejoin": "round", "stroke-dasharray": dash,
+            if (complete && fo > 0 && !hc.on) this.el("path", { d: this.pathOf(pts, s.curve, cx, cy), fill: color, "fill-opacity": this.hasHighlights ? fo * 0.4 : fo, stroke: "none" }, sg);
+            this.el("path", { d: this.pathOf(pts, s.curve, cx, cy), fill: "none", stroke: color, "stroke-width": lw, "stroke-linejoin": "round", "stroke-dasharray": dash,
                 "stroke-opacity": this.hasHighlights ? 0.35 : 1 }, sg);
             if (this.hasHighlights) {
                 const hp = axes.map((a, j) => { const p = ptOf(a.key, si); const v = val(p, p?.hl ?? null); return v === null ? null : at(frac(v, scales.get(a.key), a.reversed), j); });
-                this.el("path", { d: this.pathOf(hp), fill: hc.on ? "none" : color, "fill-opacity": hc.on ? 0 : fo, stroke: color, "stroke-width": lw + 0.5, "stroke-dasharray": dash }, sg);
+                this.el("path", { d: this.pathOf(hp, s.curve, cx, cy), fill: hc.on ? "none" : color, "fill-opacity": hc.on ? 0 : fo, stroke: color, "stroke-width": lw + 0.5, "stroke-dasharray": dash }, sg);
             }
         }
 
@@ -1077,7 +1108,8 @@ export class Visual implements IVisual {
                 const pg = this.el("g", { "data-pt": p.key, class: "tcrd-pt", tabindex: -1, role: "option" }, marks);
                 pg.setAttribute("aria-label", `${se.name ? se.name + " · " : ""}${a.name}: ${this.pointFmt(p)(p.value ?? 0)}`);
                 const fill = hc.on ? hc.bg : (p.rule || s.markerColor || se.color);
-                if (s.markers || p.rule) this.el("circle", { cx: x.toFixed(1), cy: y.toFixed(1), r, fill, stroke: hc.on ? hc.fg : "#FFFFFF", "stroke-width": hc.on ? 1.5 : 1 }, pg);
+                if (s.markers || p.rule) this.el("path", { d: this.markerPath(s.markerShape === "bySeries" ? MARKER_SHAPES[si % MARKER_SHAPES.length] : s.markerShape, x, y, r),
+                    fill, stroke: hc.on ? hc.fg : "#FFFFFF", "stroke-width": hc.on ? 1.5 : 1 }, pg);
                 // Zona de clic mayor que el marcador
                 this.el("circle", { cx: x.toFixed(1), cy: y.toFixed(1), r: Math.max(7, r + 3), fill: "transparent", class: "tcrd-hit" }, pg);
                 const c = Math.cos(ang(j)), sn = Math.sin(ang(j));
@@ -1128,22 +1160,52 @@ export class Visual implements IVisual {
     }
 
     /** Contorno con huecos: cerrado si no falta ningún punto; si faltan, solo los tramos entre puntos presentes. */
-    private pathOf(pts: ([number, number] | null)[]): string {
+    private pathOf(pts: ([number, number] | null)[], curve = false, cx = 0, cy = 0): string {
         const P = (p: [number, number]) => p[0].toFixed(1) + "," + p[1].toFixed(1);
-        if (pts.every(p => p !== null)) return "M" + pts.map(P).join("L") + "Z";
+        if (pts.every(p => p !== null)) return curve ? this.smooth(pts as [number, number][], true, cx, cy) : "M" + pts.map(P).join("L") + "Z";
         const n = pts.length;
         let d = "";
         // Empezar justo después de un hueco para que el tramo que cruza el final no se parta en dos.
         const startAt = pts.findIndex((p, i) => p !== null && pts[(i - 1 + n) % n] === null);
         if (startAt < 0) return "";
-        let run: string[] = [];
+        let run: [number, number][] = [];
+        const flush = () => { if (run.length > 1) d += curve ? this.smooth(run, false, cx, cy) : "M" + run.map(P).join("L"); run = []; };
         for (let k = 0; k < n; k++) {
             const p = pts[(startAt + k) % n];
-            if (p) run.push(P(p));
-            else { if (run.length > 1) d += "M" + run.join("L"); run = []; }
+            if (p) run.push(p); else flush();
         }
-        if (run.length > 1) d += "M" + run.join("L");
+        flush();
         return d;
+    }
+
+    /**
+     * Curva entre ejes interpolando en polar (ángulo y radio lineales): redondea la forma sin pasar nunca del
+     * valor de los dos ejes vecinos. Una spline cartesiana se salía del anillo exterior e inventaba valores.
+     */
+    private smooth(pts: [number, number][], closed: boolean, cx: number, cy: number): string {
+        const pol = pts.map(p => ({ r: Math.hypot(p[0] - cx, p[1] - cy), a: Math.atan2(p[1] - cy, p[0] - cx) }));
+        const f = (v: number) => v.toFixed(1);
+        let d = "M" + f(pts[0][0]) + "," + f(pts[0][1]);
+        const segs = closed ? pol.length : pol.length - 1;
+        for (let i = 0; i < segs; i++) {
+            const A = pol[i], B = pol[(i + 1) % pol.length];
+            let da = B.a - A.a;
+            while (da <= 0) da += 2 * Math.PI;      // siempre en el sentido de los ejes
+            const steps = 12;
+            for (let k = 1; k <= steps; k++) {
+                const t = k / steps, a = A.a + da * t, r = A.r + (B.r - A.r) * t;
+                d += "L" + f(cx + Math.cos(a) * r) + "," + f(cy + Math.sin(a) * r);
+            }
+        }
+        return d + (closed ? "Z" : "");
+    }
+
+    private markerPath(shape: string, x: number, y: number, r: number): string {
+        const f = (v: number) => v.toFixed(1);
+        if (shape === "square") { const a = r * 0.9; return `M${f(x - a)},${f(y - a)}h${f(2 * a)}v${f(2 * a)}h${f(-2 * a)}Z`; }
+        if (shape === "diamond") { const a = r * 1.25; return `M${f(x)},${f(y - a)}L${f(x + a)},${f(y)}L${f(x)},${f(y + a)}L${f(x - a)},${f(y)}Z`; }
+        if (shape === "triangle") { const a = r * 1.3; return `M${f(x)},${f(y - a)}L${f(x + a * 0.87)},${f(y + a * 0.5)}L${f(x - a * 0.87)},${f(y + a * 0.5)}Z`; }
+        return `M${f(x - r)},${f(y)}a${f(r)},${f(r)} 0 1,0 ${f(2 * r)},0a${f(r)},${f(r)} 0 1,0 ${f(-2 * r)},0Z`;
     }
 
     // ── Tabla de valores (Pro) ────────────────────────────────────────────────
@@ -1212,6 +1274,8 @@ export class Visual implements IVisual {
         const msgs: string[] = [];
         if (this.totalAxes > this.axes.length)
             msgs.push(this.t("UI_AxesOf", "Showing {0} of {1} axes.").replace("{0}", String(this.axes.length)).replace("{1}", String(this.totalAxes)));
+        const out = this.outOfScale(s);
+        if (out) msgs.push(this.t("UI_OutOfScale", "{0} values are outside the fixed scale and are drawn at its edge.").replace("{0}", String(out)));
         const dom = this.dominantAxis(s);
         if (dom) msgs.push(this.t("UI_Dominant", "“{0}” is much larger than the other axes, so they look flat. Check the scale in Format → Scale.").replace("{0}", dom));
         if (DEBUG_SEL && (this as any).diagRule) msgs.push((this as any).diagRule);
@@ -1223,6 +1287,23 @@ export class Visual implements IVisual {
         const hc = this.hc();
         this.noteEl.style.color = hc.on ? hc.fg : "#83827D";
         return msgs.length > 0;
+    }
+
+    /** Puntos que caen fuera de una escala fijada a mano (o por las medidas Mín./Máx.): se dibujan en el borde y se avisa. */
+    private outOfScale(s: Settings): number {
+        if (!this.axes.length) return 0;
+        const fixed = (s.scaleMode === "common" && !s.auto) || s.scaleMode === "perAxis";
+        if (!fixed) return 0;
+        const sc = this.scales(s);
+        let n = 0;
+        this.pts.forEach(p => {
+            const a = this.axisByKey(p.axis);
+            const v = this.plotValue(p, p.value, s);
+            if (!a || v === null) return;
+            const k = sc.get(a.key);
+            if (v < k.lo - 1e-9 || v > k.hi + 1e-9) n++;
+        });
+        return n;
     }
 
     /**
@@ -1871,10 +1952,13 @@ export class Visual implements IVisual {
                 ...seriesColors,
                 num("series", "fillOpacity", "Fill opacity %", s.fillOpacity),
                 num("series", "lineWidth", "Line width", s.lineWidth),
+                tog("series", "curve", "Curved lines", s.curve),
             ]),
             card("markers", "Markers", [
                 tog("markers", "show", "Show", s.markers),
                 num("markers", "size", "Size", s.markerSize),
+                dd("markers", "shape", "Shape", s.markerShape, [["circle", "Enum_mk_circle", "Circle"], ["square", "Enum_mk_square", "Square"],
+                    ["diamond", "Enum_mk_diamond", "Diamond"], ["triangle", "Enum_mk_triangle", "Triangle"], ["bySeries", "Enum_mk_bySeries", "One per series"]]),
                 // Con Serie, Power BI no entrega las reglas por punto (probado en Desktop el 19-10-2026): sin botón fx,
                 // igual que los gráficos nativos cuando hay un campo en Leyenda.
                 col("markers", "fill", "Marker color (Pro rules)", s.markerColor, !this.seriesBound),
@@ -1898,6 +1982,7 @@ export class Visual implements IVisual {
                 dd("grid", "shape", "Shape", s.gridShape, [["polygon", "Enum_gr_polygon", "Polygon"], ["circle", "Enum_gr_circle", "Circle"]]),
                 col("grid", "color", "Line color", s.gridColor),
                 tog("grid", "spokes", "Spokes", s.spokes),
+                num("grid", "rotation", "Rotation (degrees)", s.rotation),
                 tog("grid", "ringLabels", "Ring values", s.ringLabels),
                 num("grid", "fontSize", "Text size", s.gridFont),
                 col("grid", "labelColor", "Text color", s.gridLabelColor),
@@ -1929,6 +2014,12 @@ export class Visual implements IVisual {
                 col("bands", "highColor", "High band color", s.bandHighColor),
                 num("bands", "opacity", "Band opacity %", s.bandOpacity),
             ]),
+            card("reference", "Reference ring", [
+                tog("reference", "show", "Reference ring (Pro)", s.refShow),
+                num("reference", "value", "Value", s.refValue),
+                txt("reference", "label", "Label", s.refLabel),
+                col("reference", "color", "Color", s.refColor),
+            ]),
             card("axisGroups", "Axis groups", [
                 num("axisGroups", "fontSize", "Text size", s.groupFont),
                 col("axisGroups", "color", "Text color", s.groupColor),
@@ -1956,6 +2047,7 @@ export class Visual implements IVisual {
                 col("valueTable", "banding", "Alternate row color", s.tableBanding),
             ]),
             card("smallMultiples", "Small multiples", [
+                tog("smallMultiples", "bySeries", "One radar per series (Pro)", s.smBySeries),
                 num("smallMultiples", "columns", "Columns (0 = automatic)", s.smCols),
                 num("smallMultiples", "gap", "Space between panels", s.smGap),
                 num("smallMultiples", "titleSize", "Title size", s.smTitleSize),

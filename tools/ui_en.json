@@ -11,6 +11,7 @@
  "UI_Target": "Target",
  "UI_Gap": "Gap",
  "UI_AxesOf": "Showing {0} of {1} axes.",
+ "UI_OutOfScale": "{0} values are outside the fixed scale and are drawn at its edge.",
  "UI_Dominant": "“{0}” is much larger than the other axes, so they look flat. Check the scale in Format → Scale.",
  "UI_ReadingFree": "Pro features not applied in reading view:",
  "UI_ProPreview": "Pro preview",

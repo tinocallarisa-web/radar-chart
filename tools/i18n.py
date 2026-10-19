@@ -11,7 +11,7 @@ L = ["es-ES", "pt-BR", "fr-FR", "de-DE", "it-IT", "nl-NL", "pl-PL", "ja-JP", "zh
 
 FEAT = {"Feat_series": "more than 3 series", "Feat_target": "target", "Feat_scale": "scale per axis", "Feat_reversed": "reversed axes",
         "Feat_bands": "bands", "Feat_panel": "small multiples", "Feat_groups": "axis groups", "Feat_notes": "annotations",
-        "Feat_rules": "color rules", "Feat_table": "value table", "Feat_mean": "mean of the axes"}
+        "Feat_rules": "color rules", "Feat_table": "value table", "Feat_mean": "mean of the axes", "Feat_reference": "reference ring"}
 
 T = {
 # roles

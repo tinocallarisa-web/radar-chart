@@ -261,6 +261,13 @@
           "type": {
             "numeric": true
           }
+        },
+        "curve": {
+          "displayName": "Curved lines",
+          "displayNameKey": "Prop_series_curve",
+          "type": {
+            "bool": true
+          }
         }
       }
     },
@@ -280,6 +287,39 @@
           "displayNameKey": "Prop_markers_size",
           "type": {
             "numeric": true
+          }
+        },
+        "shape": {
+          "displayName": "Shape",
+          "displayNameKey": "Prop_markers_shape",
+          "type": {
+            "enumeration": [
+              {
+                "value": "circle",
+                "displayName": "Circle",
+                "displayNameKey": "Enum_mk_circle"
+              },
+              {
+                "value": "square",
+                "displayName": "Square",
+                "displayNameKey": "Enum_mk_square"
+              },
+              {
+                "value": "diamond",
+                "displayName": "Diamond",
+                "displayNameKey": "Enum_mk_diamond"
+              },
+              {
+                "value": "triangle",
+                "displayName": "Triangle",
+                "displayNameKey": "Enum_mk_triangle"
+              },
+              {
+                "value": "bySeries",
+                "displayName": "One per series",
+                "displayNameKey": "Enum_mk_bySeries"
+              }
+            ]
           }
         },
         "fill": {
@@ -435,6 +475,13 @@
           "displayNameKey": "Prop_grid_spokes",
           "type": {
             "bool": true
+          }
+        },
+        "rotation": {
+          "displayName": "Rotation (degrees)",
+          "displayNameKey": "Prop_grid_rotation",
+          "type": {
+            "numeric": true
           }
         },
         "ringLabels": {
@@ -665,6 +712,44 @@
         }
       }
     },
+    "reference": {
+      "displayName": "Reference ring",
+      "displayNameKey": "Obj_reference",
+      "properties": {
+        "show": {
+          "displayName": "Reference ring (Pro)",
+          "displayNameKey": "Prop_reference_show",
+          "type": {
+            "bool": true
+          }
+        },
+        "value": {
+          "displayName": "Value",
+          "displayNameKey": "Prop_reference_value",
+          "type": {
+            "numeric": true
+          }
+        },
+        "label": {
+          "displayName": "Label",
+          "displayNameKey": "Prop_reference_label",
+          "type": {
+            "text": true
+          }
+        },
+        "color": {
+          "displayName": "Color",
+          "displayNameKey": "Prop_reference_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
     "axisGroups": {
       "displayName": "Axis groups",
       "displayNameKey": "Obj_axisGroups",
@@ -855,6 +940,13 @@
       "displayName": "Small multiples",
       "displayNameKey": "Obj_smallMultiples",
       "properties": {
+        "bySeries": {
+          "displayName": "One radar per series (Pro)",
+          "displayNameKey": "Prop_smallMultiples_bySeries",
+          "type": {
+            "bool": true
+          }
+        },
         "columns": {
           "displayName": "Columns (0 = automatic)",
           "displayNameKey": "Prop_smallMultiples_columns",

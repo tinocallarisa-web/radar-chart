@@ -36,10 +36,13 @@ OBJECTS = [
         ("fill", "Color", "color"),
         ("fillOpacity", "Fill opacity %", "num"),
         ("lineWidth", "Line width", "num"),
+        ("curve", "Curved lines", "bool"),
     ]),
     ("markers", "Markers", [
         ("show", "Show", "bool"),
         ("size", "Size", "num"),
+        ("shape", "Shape", E(("circle", "Enum_mk_circle", "Circle"), ("square", "Enum_mk_square", "Square"), ("diamond", "Enum_mk_diamond", "Diamond"),
+                             ("triangle", "Enum_mk_triangle", "Triangle"), ("bySeries", "Enum_mk_bySeries", "One per series"))),
         ("fill", "Marker color (Pro rules)", "colorfx"),
     ]),
     ("labels", "Data labels", [
@@ -61,6 +64,7 @@ OBJECTS = [
         ("shape", "Shape", E(("polygon", "Enum_gr_polygon", "Polygon"), ("circle", "Enum_gr_circle", "Circle"))),
         ("color", "Line color", "color"),
         ("spokes", "Spokes", "bool"),
+        ("rotation", "Rotation (degrees)", "num"),
         ("ringLabels", "Ring values", "bool"),
         ("fontSize", "Text size", "num"),
         ("labelColor", "Text color", "color"),
@@ -93,6 +97,12 @@ OBJECTS = [
         ("highColor", "High band color", "color"),
         ("opacity", "Band opacity %", "num"),
     ]),
+    ("reference", "Reference ring", [
+        ("show", "Reference ring (Pro)", "bool"),
+        ("value", "Value", "num"),
+        ("label", "Label", "text"),
+        ("color", "Color", "color"),
+    ]),
     ("axisGroups", "Axis groups", [
         ("fontSize", "Text size", "num"),
         ("color", "Text color", "color"),
@@ -120,6 +130,7 @@ OBJECTS = [
         ("banding", "Alternate row color", "color"),
     ]),
     ("smallMultiples", "Small multiples", [
+        ("bySeries", "One radar per series (Pro)", "bool"),
         ("columns", "Columns (0 = automatic)", "num"),
         ("gap", "Space between panels", "num"),
         ("titleSize", "Title size", "num"),
