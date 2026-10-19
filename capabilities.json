@@ -1,0 +1,989 @@
+{
+  "dataRoles": [
+    {
+      "name": "axis",
+      "kind": "Grouping",
+      "displayName": "Axis",
+      "displayNameKey": "Role_axis",
+      "description": "One spoke per value: skill, criterion, KPI. A hierarchy gives drilldown. Without it, each measure in Values is an axis.",
+      "descriptionKey": "Role_axis_Desc"
+    },
+    {
+      "name": "values",
+      "kind": "Measure",
+      "displayName": "Values",
+      "displayNameKey": "Role_values",
+      "description": "The score on each axis. With Axis and no Series, each measure is a series.",
+      "descriptionKey": "Role_values_Desc"
+    },
+    {
+      "name": "series",
+      "kind": "Grouping",
+      "displayName": "Series (legend)",
+      "displayNameKey": "Role_series",
+      "description": "One shape per value: supplier, employee, product. Free shows 3; Pro up to 12.",
+      "descriptionKey": "Role_series_Desc"
+    },
+    {
+      "name": "target",
+      "kind": "Measure",
+      "displayName": "Target (Pro)",
+      "displayNameKey": "Role_target",
+      "description": "Required level per axis: a dashed shape and the gap on every axis.",
+      "descriptionKey": "Role_target_Desc"
+    },
+    {
+      "name": "scaleMin",
+      "kind": "Measure",
+      "displayName": "Scale minimum (Pro)",
+      "displayNameKey": "Role_scaleMin",
+      "description": "Bottom of the scale per axis, for a scale per axis.",
+      "descriptionKey": "Role_scaleMin_Desc"
+    },
+    {
+      "name": "scaleMax",
+      "kind": "Measure",
+      "displayName": "Scale maximum (Pro)",
+      "displayNameKey": "Role_scaleMax",
+      "description": "Top of the scale per axis, such as the maximum points of each question.",
+      "descriptionKey": "Role_scaleMax_Desc"
+    },
+    {
+      "name": "axisGroup",
+      "kind": "Grouping",
+      "displayName": "Axis group (Pro)",
+      "displayNameKey": "Role_axisGroup",
+      "description": "Groups of axes drawn as named arcs: technical, personal.",
+      "descriptionKey": "Role_axisGroup_Desc"
+    },
+    {
+      "name": "note",
+      "kind": "Measure",
+      "displayName": "Note (Pro)",
+      "displayNameKey": "Role_note",
+      "description": "A text measure shown next to the point as an annotation.",
+      "descriptionKey": "Role_note_Desc"
+    },
+    {
+      "name": "panel",
+      "kind": "Grouping",
+      "displayName": "Small multiples (Pro)",
+      "displayNameKey": "Role_panel",
+      "description": "One radar per value, on a shared scale.",
+      "descriptionKey": "Role_panel_Desc"
+    },
+    {
+      "name": "tooltips",
+      "kind": "Measure",
+      "displayName": "Tooltips",
+      "displayNameKey": "Role_tooltips",
+      "description": "Extra values in the tooltip.",
+      "descriptionKey": "Role_tooltips_Desc"
+    }
+  ],
+  "dataViewMappings": [
+    {
+      "conditions": [
+        {
+          "values": {
+            "max": 40
+          },
+          "series": {
+            "max": 1
+          },
+          "target": {
+            "max": 1
+          },
+          "scaleMin": {
+            "max": 1
+          },
+          "scaleMax": {
+            "max": 1
+          },
+          "axisGroup": {
+            "max": 1
+          },
+          "note": {
+            "max": 1
+          },
+          "panel": {
+            "max": 1
+          }
+        }
+      ],
+      "categorical": {
+        "categories": {
+          "select": [
+            {
+              "bind": {
+                "to": "axis"
+              }
+            },
+            {
+              "bind": {
+                "to": "axisGroup"
+              }
+            },
+            {
+              "bind": {
+                "to": "panel"
+              }
+            }
+          ],
+          "dataReductionAlgorithm": {
+            "window": {
+              "count": 30000
+            }
+          }
+        },
+        "values": {
+          "group": {
+            "by": "series",
+            "select": [
+              {
+                "bind": {
+                  "to": "values"
+                }
+              },
+              {
+                "bind": {
+                  "to": "target"
+                }
+              },
+              {
+                "bind": {
+                  "to": "scaleMin"
+                }
+              },
+              {
+                "bind": {
+                  "to": "scaleMax"
+                }
+              },
+              {
+                "bind": {
+                  "to": "note"
+                }
+              },
+              {
+                "bind": {
+                  "to": "tooltips"
+                }
+              }
+            ],
+            "dataReductionAlgorithm": {
+              "top": {
+                "count": 60
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "objects": {
+    "style": {
+      "displayName": "Style template",
+      "displayNameKey": "Obj_style",
+      "properties": {
+        "template": {
+          "displayName": "Template",
+          "displayNameKey": "Prop_style_template",
+          "type": {
+            "enumeration": [
+              {
+                "value": "clean",
+                "displayName": "Clean",
+                "displayNameKey": "Enum_tpl_clean"
+              },
+              {
+                "value": "classic",
+                "displayName": "Classic",
+                "displayNameKey": "Enum_tpl_classic"
+              },
+              {
+                "value": "minimal",
+                "displayName": "Minimal",
+                "displayNameKey": "Enum_tpl_minimal"
+              },
+              {
+                "value": "contrast",
+                "displayName": "Contrast",
+                "displayNameKey": "Enum_tpl_contrast"
+              },
+              {
+                "value": "compact",
+                "displayName": "Compact",
+                "displayNameKey": "Enum_tpl_compact"
+              },
+              {
+                "value": "ibcs",
+                "displayName": "IBCS style",
+                "displayNameKey": "Enum_tpl_ibcs"
+              }
+            ]
+          }
+        },
+        "guide": {
+          "displayName": "Setup guide",
+          "displayNameKey": "Prop_style_guide",
+          "type": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "series": {
+      "displayName": "Series",
+      "displayNameKey": "Obj_series",
+      "properties": {
+        "fill": {
+          "displayName": "Color",
+          "displayNameKey": "Prop_series_fill",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "fillOpacity": {
+          "displayName": "Fill opacity %",
+          "displayNameKey": "Prop_series_fillOpacity",
+          "type": {
+            "numeric": true
+          }
+        },
+        "lineWidth": {
+          "displayName": "Line width",
+          "displayNameKey": "Prop_series_lineWidth",
+          "type": {
+            "numeric": true
+          }
+        }
+      }
+    },
+    "markers": {
+      "displayName": "Markers",
+      "displayNameKey": "Obj_markers",
+      "properties": {
+        "show": {
+          "displayName": "Show",
+          "displayNameKey": "Prop_markers_show",
+          "type": {
+            "bool": true
+          }
+        },
+        "size": {
+          "displayName": "Size",
+          "displayNameKey": "Prop_markers_size",
+          "type": {
+            "numeric": true
+          }
+        },
+        "fill": {
+          "displayName": "Marker color (Pro rules)",
+          "displayNameKey": "Prop_markers_fill",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "labels": {
+      "displayName": "Data labels",
+      "displayNameKey": "Obj_labels",
+      "properties": {
+        "show": {
+          "displayName": "Show",
+          "displayNameKey": "Prop_labels_show",
+          "type": {
+            "bool": true
+          }
+        },
+        "fontSize": {
+          "displayName": "Text size",
+          "displayNameKey": "Prop_labels_fontSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color": {
+          "displayName": "Text color",
+          "displayNameKey": "Prop_labels_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "scale": {
+      "displayName": "Scale",
+      "displayNameKey": "Obj_scale",
+      "properties": {
+        "mode": {
+          "displayName": "Scale",
+          "displayNameKey": "Prop_scale_mode",
+          "type": {
+            "enumeration": [
+              {
+                "value": "common",
+                "displayName": "Common to all axes",
+                "displayNameKey": "Enum_sc_common"
+              },
+              {
+                "value": "perAxis",
+                "displayName": "Per axis (Pro)",
+                "displayNameKey": "Enum_sc_perAxis"
+              },
+              {
+                "value": "target",
+                "displayName": "% of target (Pro)",
+                "displayNameKey": "Enum_sc_target"
+              }
+            ]
+          }
+        },
+        "zero": {
+          "displayName": "Start at zero",
+          "displayNameKey": "Prop_scale_zero",
+          "type": {
+            "bool": true
+          }
+        },
+        "auto": {
+          "displayName": "Automatic range",
+          "displayNameKey": "Prop_scale_auto",
+          "type": {
+            "bool": true
+          }
+        },
+        "min": {
+          "displayName": "Minimum",
+          "displayNameKey": "Prop_scale_min",
+          "type": {
+            "numeric": true
+          }
+        },
+        "max": {
+          "displayName": "Maximum",
+          "displayNameKey": "Prop_scale_max",
+          "type": {
+            "numeric": true
+          }
+        },
+        "rings": {
+          "displayName": "Rings",
+          "displayNameKey": "Prop_scale_rings",
+          "type": {
+            "numeric": true
+          }
+        },
+        "reversed": {
+          "displayName": "Lower is better (Pro): axis names, comma separated",
+          "displayNameKey": "Prop_scale_reversed",
+          "type": {
+            "text": true
+          }
+        }
+      }
+    },
+    "grid": {
+      "displayName": "Grid",
+      "displayNameKey": "Obj_grid",
+      "properties": {
+        "shape": {
+          "displayName": "Shape",
+          "displayNameKey": "Prop_grid_shape",
+          "type": {
+            "enumeration": [
+              {
+                "value": "polygon",
+                "displayName": "Polygon",
+                "displayNameKey": "Enum_gr_polygon"
+              },
+              {
+                "value": "circle",
+                "displayName": "Circle",
+                "displayNameKey": "Enum_gr_circle"
+              }
+            ]
+          }
+        },
+        "color": {
+          "displayName": "Line color",
+          "displayNameKey": "Prop_grid_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "spokes": {
+          "displayName": "Spokes",
+          "displayNameKey": "Prop_grid_spokes",
+          "type": {
+            "bool": true
+          }
+        },
+        "ringLabels": {
+          "displayName": "Ring values",
+          "displayNameKey": "Prop_grid_ringLabels",
+          "type": {
+            "bool": true
+          }
+        },
+        "fontSize": {
+          "displayName": "Text size",
+          "displayNameKey": "Prop_grid_fontSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "labelColor": {
+          "displayName": "Text color",
+          "displayNameKey": "Prop_grid_labelColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "axisLabels": {
+      "displayName": "Axis labels",
+      "displayNameKey": "Obj_axisLabels",
+      "properties": {
+        "show": {
+          "displayName": "Show",
+          "displayNameKey": "Prop_axisLabels_show",
+          "type": {
+            "bool": true
+          }
+        },
+        "fontSize": {
+          "displayName": "Text size",
+          "displayNameKey": "Prop_axisLabels_fontSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color": {
+          "displayName": "Text color",
+          "displayNameKey": "Prop_axisLabels_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "fontFamily": {
+          "displayName": "Font",
+          "displayNameKey": "Prop_axisLabels_fontFamily",
+          "type": {
+            "text": true
+          }
+        },
+        "bold": {
+          "displayName": "Bold",
+          "displayNameKey": "Prop_axisLabels_bold",
+          "type": {
+            "bool": true
+          }
+        },
+        "maxChars": {
+          "displayName": "Maximum characters (0 = automatic)",
+          "displayNameKey": "Prop_axisLabels_maxChars",
+          "type": {
+            "numeric": true
+          }
+        }
+      }
+    },
+    "axisOrder": {
+      "displayName": "Axis order",
+      "displayNameKey": "Obj_axisOrder",
+      "properties": {
+        "by": {
+          "displayName": "Order axes by",
+          "displayNameKey": "Prop_axisOrder_by",
+          "type": {
+            "enumeration": [
+              {
+                "value": "data",
+                "displayName": "Data order",
+                "displayNameKey": "Enum_ao_data"
+              },
+              {
+                "value": "name",
+                "displayName": "Name",
+                "displayNameKey": "Enum_ao_name"
+              },
+              {
+                "value": "value",
+                "displayName": "Value of the first series",
+                "displayNameKey": "Enum_ao_value"
+              }
+            ]
+          }
+        },
+        "descending": {
+          "displayName": "Descending",
+          "displayNameKey": "Prop_axisOrder_descending",
+          "type": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "target": {
+      "displayName": "Target",
+      "displayNameKey": "Obj_target",
+      "properties": {
+        "color": {
+          "displayName": "Target color",
+          "displayNameKey": "Prop_target_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "showGap": {
+          "displayName": "Show the gap per axis",
+          "displayNameKey": "Prop_target_showGap",
+          "type": {
+            "bool": true
+          }
+        },
+        "goodColor": {
+          "displayName": "Above target color",
+          "displayNameKey": "Prop_target_goodColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "badColor": {
+          "displayName": "Below target color",
+          "displayNameKey": "Prop_target_badColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "bands": {
+      "displayName": "Bands",
+      "displayNameKey": "Obj_bands",
+      "properties": {
+        "show": {
+          "displayName": "Show bands (Pro)",
+          "displayNameKey": "Prop_bands_show",
+          "type": {
+            "bool": true
+          }
+        },
+        "low": {
+          "displayName": "First band ends at %",
+          "displayNameKey": "Prop_bands_low",
+          "type": {
+            "numeric": true
+          }
+        },
+        "high": {
+          "displayName": "Second band ends at %",
+          "displayNameKey": "Prop_bands_high",
+          "type": {
+            "numeric": true
+          }
+        },
+        "lowColor": {
+          "displayName": "Low band color",
+          "displayNameKey": "Prop_bands_lowColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "midColor": {
+          "displayName": "Middle band color",
+          "displayNameKey": "Prop_bands_midColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "highColor": {
+          "displayName": "High band color",
+          "displayNameKey": "Prop_bands_highColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "opacity": {
+          "displayName": "Band opacity %",
+          "displayNameKey": "Prop_bands_opacity",
+          "type": {
+            "numeric": true
+          }
+        }
+      }
+    },
+    "axisGroups": {
+      "displayName": "Axis groups",
+      "displayNameKey": "Obj_axisGroups",
+      "properties": {
+        "fontSize": {
+          "displayName": "Text size",
+          "displayNameKey": "Prop_axisGroups_fontSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color": {
+          "displayName": "Text color",
+          "displayNameKey": "Prop_axisGroups_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "annotations": {
+      "displayName": "Annotations",
+      "displayNameKey": "Obj_annotations",
+      "properties": {
+        "show": {
+          "displayName": "Show",
+          "displayNameKey": "Prop_annotations_show",
+          "type": {
+            "bool": true
+          }
+        },
+        "fontSize": {
+          "displayName": "Text size",
+          "displayNameKey": "Prop_annotations_fontSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color": {
+          "displayName": "Text color",
+          "displayNameKey": "Prop_annotations_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "center": {
+      "displayName": "Center",
+      "displayNameKey": "Obj_center",
+      "properties": {
+        "axesMean": {
+          "displayName": "Mean of the axes (Pro)",
+          "displayNameKey": "Prop_center_axesMean",
+          "type": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "legend": {
+      "displayName": "Legend",
+      "displayNameKey": "Obj_legend",
+      "properties": {
+        "show": {
+          "displayName": "Show",
+          "displayNameKey": "Prop_legend_show",
+          "type": {
+            "bool": true
+          }
+        },
+        "position": {
+          "displayName": "Position",
+          "displayNameKey": "Prop_legend_position",
+          "type": {
+            "enumeration": [
+              {
+                "value": "top",
+                "displayName": "Top",
+                "displayNameKey": "Enum_lg_top"
+              },
+              {
+                "value": "bottom",
+                "displayName": "Bottom",
+                "displayNameKey": "Enum_lg_bottom"
+              },
+              {
+                "value": "right",
+                "displayName": "Right",
+                "displayNameKey": "Enum_lg_right"
+              }
+            ]
+          }
+        },
+        "fontSize": {
+          "displayName": "Text size",
+          "displayNameKey": "Prop_legend_fontSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color": {
+          "displayName": "Text color",
+          "displayNameKey": "Prop_legend_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "valueTable": {
+      "displayName": "Value table",
+      "displayNameKey": "Obj_valueTable",
+      "properties": {
+        "show": {
+          "displayName": "Show table (Pro)",
+          "displayNameKey": "Prop_valueTable_show",
+          "type": {
+            "bool": true
+          }
+        },
+        "fontSize": {
+          "displayName": "Text size",
+          "displayNameKey": "Prop_valueTable_fontSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color": {
+          "displayName": "Text color",
+          "displayNameKey": "Prop_valueTable_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "headerBackground": {
+          "displayName": "Header background",
+          "displayNameKey": "Prop_valueTable_headerBackground",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "headerColor": {
+          "displayName": "Header text color",
+          "displayNameKey": "Prop_valueTable_headerColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "banding": {
+          "displayName": "Alternate row color",
+          "displayNameKey": "Prop_valueTable_banding",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "smallMultiples": {
+      "displayName": "Small multiples",
+      "displayNameKey": "Obj_smallMultiples",
+      "properties": {
+        "columns": {
+          "displayName": "Columns (0 = automatic)",
+          "displayNameKey": "Prop_smallMultiples_columns",
+          "type": {
+            "numeric": true
+          }
+        },
+        "gap": {
+          "displayName": "Space between panels",
+          "displayNameKey": "Prop_smallMultiples_gap",
+          "type": {
+            "numeric": true
+          }
+        },
+        "titleSize": {
+          "displayName": "Title size",
+          "displayNameKey": "Prop_smallMultiples_titleSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "titleColor": {
+          "displayName": "Title color",
+          "displayNameKey": "Prop_smallMultiples_titleColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "titleBold": {
+          "displayName": "Bold title",
+          "displayNameKey": "Prop_smallMultiples_titleBold",
+          "type": {
+            "bool": true
+          }
+        },
+        "titleAlign": {
+          "displayName": "Title alignment",
+          "displayNameKey": "Prop_smallMultiples_titleAlign",
+          "type": {
+            "enumeration": [
+              {
+                "value": "left",
+                "displayName": "Left",
+                "displayNameKey": "Enum_al_left"
+              },
+              {
+                "value": "center",
+                "displayName": "Center",
+                "displayNameKey": "Enum_al_center"
+              }
+            ]
+          }
+        },
+        "background": {
+          "displayName": "Panel background",
+          "displayNameKey": "Prop_smallMultiples_background",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "border": {
+          "displayName": "Panel border",
+          "displayNameKey": "Prop_smallMultiples_border",
+          "type": {
+            "bool": true
+          }
+        },
+        "borderColor": {
+          "displayName": "Panel border color",
+          "displayNameKey": "Prop_smallMultiples_borderColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "background": {
+      "displayName": "Background",
+      "displayNameKey": "Obj_background",
+      "properties": {
+        "color": {
+          "displayName": "Color",
+          "displayNameKey": "Prop_background_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tooltips": {
+    "supportedTypes": {
+      "default": true,
+      "canvas": true
+    },
+    "roles": [
+      "tooltips"
+    ]
+  },
+  "drilldown": {
+    "roles": [
+      "axis"
+    ]
+  },
+  "sorting": {
+    "default": {}
+  },
+  "supportsHighlight": true,
+  "supportsLandingPage": true,
+  "supportsEmptyDataView": true,
+  "supportsKeyboardFocus": true,
+  "supportsMultiVisualSelection": true,
+  "privileges": [],
+  "supportsOnObjectFormatting": true,
+  "enablePointerEventsFormatMode": true
+}

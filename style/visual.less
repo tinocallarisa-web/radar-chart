@@ -1,0 +1,122 @@
+.tcrd {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: "Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif;
+    svg { display: block; flex: 0 0 auto; overflow: visible; }
+    text { user-select: none; }
+}
+.tcrd-pt, .tcrd-leg, .tcrd-axis { cursor: pointer; outline: none; }
+.tcrd-pt:focus-visible .tcrd-hit { stroke: #1F4E80; stroke-width: 2px; stroke-dasharray: 3 2; }
+.tcrd-table {
+    display: none;
+    flex: 0 0 auto;
+    overflow: auto;
+    border-top: 1px solid #E1DFDD;
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 2px 6px; text-align: left; white-space: nowrap; border-bottom: 1px solid #EDEBE9; }
+    th { font-weight: 600; position: sticky; top: 0; background: inherit; }
+    th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+}
+.tcrd-note {
+    display: none;
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 2px;
+    font-size: 10px;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tcrd-watermark {
+    display: none;
+    position: absolute;
+    inset: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    // Visible sobre la rejilla sin tapar las formas: color más opaco y halo claro.
+    color: rgba(43, 108, 176, 0.42);
+    font-weight: 800;
+    text-align: center;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 2px rgba(255, 255, 255, 0.9);
+    .tcrd-wm-title { text-transform: uppercase; letter-spacing: .08em; }
+    .tcrd-wm-why { font-size: .4em; font-weight: 700; margin-top: .3em; color: rgba(31, 78, 128, 0.85); max-width: 80%; }
+}
+
+// Pantalla de inicio: tres tamaños según el recuadro
+.tcrd-landing {
+    display: none;
+    position: absolute;
+    inset: 0;
+    color: #605E5C;
+    .tcrd-l-box { display: flex; flex-direction: column; justify-content: center; gap: 18px; width: 100%; height: 100%; box-sizing: border-box; padding: 24px 32px; overflow: hidden; }
+    .tcrd-l-head { display: flex; gap: 12px; align-items: center; }
+    .tcrd-l-icon { width: 44px; height: 44px; border-radius: 9px; flex-shrink: 0; }
+    .tcrd-l-title { font-size: 20px; font-weight: 600; color: #252423; }
+    .tcrd-l-tag { font-size: 14px; margin-top: 2px; }
+    .tcrd-l-cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; }
+    .tcrd-l-lbl { font-size: 10.5px; font-weight: 600; letter-spacing: 1.3px; text-transform: uppercase; color: #8A8886; margin-bottom: 7px; }
+    .tcrd-l-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; font-size: 13.5px; }
+    .tcrd-l-steps li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; }
+    .tcrd-l-n { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #2B6CB0; color: #FFFFFF; font-size: 10.5px; }
+    .tcrd-l-well { color: #252423; }
+    .tcrd-l-links { display: grid; gap: 7px; }
+    .tcrd-l-card { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border: 1px solid #E1DFDD; border-radius: 6px; background: #F7F6F3; color: #252423; text-decoration: none; font-size: 13.5px; cursor: pointer; }
+    .tcrd-l-card:hover, .tcrd-l-card:focus-visible { border-color: #2B6CB0; outline: none; }
+    .tcrd-l-sub { margin-left: auto; color: #8A8886; font-size: 11px; }
+    .tcrd-l-inline { display: flex; gap: 14px; flex-wrap: wrap; }
+    .tcrd-l-a { color: #2B6CB0; font-weight: 600; text-decoration: none; cursor: pointer; }
+    .tcrd-l-a:hover, .tcrd-l-a:focus-visible { text-decoration: underline; outline: none; }
+    .tcrd-l-pro { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; border-top: 1px solid #EDEBE9; padding-top: 12px; font-size: 13px; }
+    .tcrd-l-chip { font-size: 10px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; background: #E3F2E8; color: #2F7A47; }
+    .tcrd-l-do { margin: 0; font-size: 12px; line-height: 1.45; }
+}
+.tcrd-landing-m {
+    .tcrd-l-box { gap: 11px; padding: 16px 20px; }
+    .tcrd-l-icon { width: 34px; height: 34px; }
+    .tcrd-l-title { font-size: 16px; }
+    .tcrd-l-tag, .tcrd-l-steps, .tcrd-l-inline { font-size: 12.5px; }
+    .tcrd-l-pro { font-size: 12px; padding-top: 9px; }
+}
+.tcrd-landing-s {
+    .tcrd-l-box { gap: 8px; padding: 12px 14px; }
+    .tcrd-l-icon { width: 26px; height: 26px; border-radius: 6px; }
+    .tcrd-l-title { font-size: 14px; }
+    .tcrd-l-inline { font-size: 12px; }
+}
+
+// Asistente de configuración: panel flotante abajo, solo editando
+.tcrd-guide {
+    display: none;
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    // Panel compacto en la esquina: el radar tiene que seguir viéndose mientras se configura.
+    width: 320px;
+    max-width: calc(100% - 16px);
+    max-height: calc(100% - 16px);
+    overflow: auto;
+    border: 1px solid #2B6CB0;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    padding: 8px 10px;
+    box-sizing: border-box;
+    z-index: 20;
+    font: 11.5px/1.35 "Segoe UI", sans-serif;
+    cursor: default;
+    .tcrd-g-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-weight: 700; div { flex: 1; } }
+    .tcrd-g-close { border: none; background: transparent; cursor: pointer; font-size: 13px; }
+    .tcrd-g-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+    .tcrd-g-item { display: flex; gap: 6px; align-items: baseline; margin: 2px 0; span:first-child { font-weight: 700; width: 12px; flex-shrink: 0; } }
+    .tcrd-g-note { font-size: 11px; margin-top: 4px; }
+    .tcrd-g-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    .tcrd-g-btn { font: 600 12px "Segoe UI", sans-serif; border-radius: 4px; padding: 3px 12px; cursor: pointer; border: 1px solid; }
+    .tcrd-g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; }
+    .tcrd-g-chip { border-style: solid; border-radius: 6px; padding: 4px; cursor: pointer; background: #FFFFFF; font: 11px "Segoe UI", sans-serif; color: #252423; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+}

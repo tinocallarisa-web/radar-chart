@@ -1,0 +1,296 @@
+# -*- coding: utf-8 -*-
+"""stringResources (12 idiomas) y src/strings.ts.
+
+Las traducciones van por TEXTO inglés, no por clave: "Show" o "Text size" se repiten en varias tarjetas.
+Orden de cada fila: es, pt (BR y PT), fr, de, it, nl, pl, ja, zh, ko.
+Ejecutar desde la raíz:  python tools/gen_capabilities.py && python tools/extract_ui.py && python tools/i18n.py
+"""
+import io, json, os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+L = ["es-ES", "pt-BR", "fr-FR", "de-DE", "it-IT", "nl-NL", "pl-PL", "ja-JP", "zh-CN", "ko-KR"]
+
+FEAT = {"Feat_series": "more than 3 series", "Feat_target": "target", "Feat_scale": "scale per axis", "Feat_reversed": "reversed axes",
+        "Feat_bands": "bands", "Feat_panel": "small multiples", "Feat_groups": "axis groups", "Feat_notes": "annotations",
+        "Feat_rules": "color rules", "Feat_table": "value table", "Feat_mean": "mean of the axes"}
+
+T = {
+# roles
+"Category": ["Categoría", "Categoria", "Catégorie", "Kategorie", "Categoria", "Categorie", "Kategoria", "カテゴリ", "类别", "범주"],
+"Value": ["Valor", "Valor", "Valeur", "Wert", "Valore", "Waarde", "Wartość", "値", "值", "값"],
+"Detail (rows)": ["Detalle (filas)", "Detalhe (linhas)", "Détail (lignes)", "Detail (Zeilen)", "Dettaglio (righe)", "Detail (rijen)", "Szczegóły (wiersze)", "詳細 (行)", "明细 (行)", "세부 정보(행)"],
+"Group (Pro)": ["Grupo (Pro)", "Grupo (Pro)", "Groupe (Pro)", "Gruppe (Pro)", "Gruppo (Pro)", "Groep (Pro)", "Grupa (Pro)", "グループ (Pro)", "分组 (Pro)", "그룹(Pro)"],
+"Small multiples (Pro)": ["Múltiplos pequeños (Pro)", "Múltiplos pequenos (Pro)", "Multiples petits (Pro)", "Kleine Vielfache (Pro)", "Multipli piccoli (Pro)", "Kleine veelvouden (Pro)", "Małe wielokrotności (Pro)", "スモール マルチプル (Pro)", "小型序列图 (Pro)", "작은 배수(Pro)"],
+"Tooltips": ["Información sobre herramientas", "Dicas de ferramenta", "Info-bulles", "QuickInfos", "Descrizioni comandi", "Knopinfo", "Etykietki narzędzi", "ツールヒント", "工具提示", "도구 설명"],
+"One box per value. A hierarchy gives drilldown.": ["Una caja por valor. Una jerarquía permite explorar en profundidad.", "Uma caixa por valor. Uma hierarquia permite fazer drill down.", "Une boîte par valeur. Une hiérarchie permet l’exploration.", "Ein Kasten pro Wert. Eine Hierarchie ermöglicht Drilldown.", "Una scatola per valore. Una gerarchia consente il drill-down.", "Eén box per waarde. Een hiërarchie maakt inzoomen mogelijk.", "Jedno pudełko na wartość. Hierarchia umożliwia drążenie.", "値ごとに 1 つの箱。階層でドリルダウンできます。", "每个值一个箱体。层次结构可向下钻取。", "값마다 상자 하나. 계층 구조로 드릴다운할 수 있습니다."],
+"The measure whose distribution is drawn, evaluated per Detail row.": ["La medida cuya distribución se dibuja, evaluada por cada fila de Detalle.", "A medida cuja distribuição é desenhada, avaliada por linha de Detalhe.", "La mesure dont la distribution est tracée, évaluée par ligne de Détail.", "Das Measure, dessen Verteilung gezeichnet wird, je Detail-Zeile ausgewertet.", "La misura di cui si disegna la distribuzione, valutata per riga di Dettaglio.", "De meting waarvan de verdeling wordt getekend, per Detail-rij berekend.", "Miara, której rozkład jest rysowany, liczona dla każdego wiersza Szczegółów.", "分布を描くメジャー。詳細の行ごとに評価されます。", "绘制其分布的度量值，按每个明细行计算。", "분포를 그리는 측정값으로, 세부 정보 행마다 계산됩니다."],
+"The ID of each observation: order, employee, ticket. Without it there is no distribution.": ["El ID de cada observación: pedido, empleado, ticket. Sin él no hay distribución.", "O ID de cada observação: pedido, funcionário, chamado. Sem ele não há distribuição.", "L’ID de chaque observation : commande, employé, ticket. Sans lui, pas de distribution.", "Die ID jeder Beobachtung: Auftrag, Mitarbeiter, Ticket. Ohne sie gibt es keine Verteilung.", "L’ID di ogni osservazione: ordine, dipendente, ticket. Senza di esso non c’è distribuzione.", "De ID van elke waarneming: order, medewerker, ticket. Zonder ID geen verdeling.", "ID każdej obserwacji: zamówienie, pracownik, zgłoszenie. Bez niego nie ma rozkładu.", "各観測値の ID (注文、従業員、チケット)。これがないと分布になりません。", "每个观测值的 ID：订单、员工、工单。没有它就没有分布。", "각 관측값의 ID(주문, 직원, 티켓). 없으면 분포가 없습니다."],
+"Side-by-side boxes within each category, with a legend.": ["Cajas lado a lado dentro de cada categoría, con leyenda.", "Caixas lado a lado em cada categoria, com legenda.", "Boîtes côte à côte dans chaque catégorie, avec légende.", "Kästen nebeneinander je Kategorie, mit Legende.", "Scatole affiancate in ogni categoria, con legenda.", "Boxen naast elkaar per categorie, met legenda.", "Pudełka obok siebie w każdej kategorii, z legendą.", "カテゴリ内に並べた箱と凡例。", "每个类别内并排的箱体，带图例。", "각 범주 안에 나란히 놓인 상자와 범례."],
+"One panel per value, on a shared scale.": ["Un panel por valor, con la misma escala.", "Um painel por valor, na mesma escala.", "Un panneau par valeur, sur une échelle commune.", "Ein Feld pro Wert, mit gemeinsamer Skala.", "Un pannello per valore, su scala comune.", "Eén paneel per waarde, met dezelfde schaal.", "Jeden panel na wartość, ze wspólną skalą.", "値ごとに 1 つのパネル (共通スケール)。", "每个值一个面板，使用相同刻度。", "값마다 패널 하나, 같은 눈금."],
+"Extra values in the tooltip.": ["Valores adicionales en la información sobre herramientas.", "Valores adicionais na dica de ferramenta.", "Valeurs supplémentaires dans l’info-bulle.", "Zusätzliche Werte in der QuickInfo.", "Valori aggiuntivi nella descrizione comando.", "Extra waarden in de knopinfo.", "Dodatkowe wartości w etykietce.", "ツールヒントの追加の値。", "工具提示中的其他值。", "도구 설명의 추가 값."],
+# tarjetas
+"Style template": ["Plantilla de estilo", "Modelo de estilo", "Modèle de style", "Stilvorlage", "Modello di stile", "Stijlsjabloon", "Szablon stylu", "スタイル テンプレート", "样式模板", "스타일 템플릿"],
+"Boxes": ["Cajas", "Caixas", "Boîtes", "Kästen", "Scatole", "Boxen", "Pudełka", "箱", "箱体", "상자"],
+"Whiskers": ["Bigotes", "Bigodes", "Moustaches", "Whisker", "Baffi", "Snorharen", "Wąsy", "ひげ", "须线", "수염"],
+"Statistics": ["Estadísticos", "Estatísticas", "Statistiques", "Statistiken", "Statistiche", "Statistieken", "Statystyki", "統計", "统计", "통계"],
+"Points": ["Puntos", "Pontos", "Points", "Punkte", "Punti", "Punten", "Punkty", "点", "点", "점"],
+"Violin": ["Violín", "Violino", "Violon", "Violine", "Violino", "Viool", "Skrzypce", "バイオリン", "小提琴图", "바이올린"],
+"Sort": ["Ordenar", "Classificar", "Trier", "Sortieren", "Ordina", "Sorteren", "Sortuj", "並べ替え", "排序", "정렬"],
+"Reference lines": ["Líneas de referencia", "Linhas de referência", "Lignes de référence", "Bezugslinien", "Linee di riferimento", "Referentielijnen", "Linie odniesienia", "参照線", "参考线", "참조선"],
+"Value axis": ["Eje de valores", "Eixo de valores", "Axe des valeurs", "Werteachse", "Asse dei valori", "Waardeas", "Oś wartości", "値の軸", "值轴", "값 축"],
+"Category axis": ["Eje de categorías", "Eixo de categorias", "Axe des catégories", "Kategorieachse", "Asse delle categorie", "Categorie-as", "Oś kategorii", "カテゴリ軸", "类别轴", "범주 축"],
+"Legend": ["Leyenda", "Legenda", "Légende", "Legende", "Legenda", "Legenda", "Legenda", "凡例", "图例", "범례"],
+"Statistics table": ["Tabla de estadísticos", "Tabela de estatísticas", "Tableau de statistiques", "Statistiktabelle", "Tabella statistiche", "Statistiektabel", "Tabela statystyk", "統計テーブル", "统计表", "통계 표"],
+"Background": ["Fondo", "Plano de fundo", "Arrière-plan", "Hintergrund", "Sfondo", "Achtergrond", "Tło", "背景", "背景", "배경"],
+# propiedades
+"Template": ["Plantilla", "Modelo", "Modèle", "Vorlage", "Modello", "Sjabloon", "Szablon", "テンプレート", "模板", "템플릿"],
+"Orientation": ["Orientación", "Orientação", "Orientation", "Ausrichtung", "Orientamento", "Richting", "Orientacja", "向き", "方向", "방향"],
+"Box color": ["Color de la caja", "Cor da caixa", "Couleur de la boîte", "Kastenfarbe", "Colore scatola", "Boxkleur", "Kolor pudełka", "箱の色", "箱体颜色", "상자 색"],
+"Border color": ["Color del borde", "Cor da borda", "Couleur de bordure", "Rahmenfarbe", "Colore bordo", "Randkleur", "Kolor obramowania", "枠線の色", "边框颜色", "테두리 색"],
+"Border width": ["Grosor del borde", "Largura da borda", "Épaisseur de bordure", "Rahmenbreite", "Spessore bordo", "Randbreedte", "Grubość obramowania", "枠線の幅", "边框宽度", "테두리 두께"],
+"Box width %": ["Ancho de la caja %", "Largura da caixa %", "Largeur de la boîte %", "Kastenbreite %", "Larghezza scatola %", "Boxbreedte %", "Szerokość pudełka %", "箱の幅 %", "箱体宽度 %", "상자 너비 %"],
+"Rounded corners": ["Esquinas redondeadas", "Cantos arredondados", "Coins arrondis", "Abgerundete Ecken", "Angoli arrotondati", "Afgeronde hoeken", "Zaokrąglone rogi", "角の丸み", "圆角", "둥근 모서리"],
+"Fill opacity %": ["Opacidad del relleno %", "Opacidade do preenchimento %", "Opacité du remplissage %", "Füllungsdeckkraft %", "Opacità riempimento %", "Dekking vulling %", "Krycie wypełnienia %", "塗りつぶしの不透明度 %", "填充不透明度 %", "채우기 불투명도 %"],
+"Color by quartile (Pro)": ["Color por cuartil (Pro)", "Cor por quartil (Pro)", "Couleur par quartile (Pro)", "Farbe nach Quartil (Pro)", "Colore per quartile (Pro)", "Kleur per kwartiel (Pro)", "Kolor według kwartyla (Pro)", "四分位で色分け (Pro)", "按四分位着色 (Pro)", "사분위별 색(Pro)"],
+"Lower half color": ["Color de la mitad inferior", "Cor da metade inferior", "Couleur de la moitié inférieure", "Farbe untere Hälfte", "Colore metà inferiore", "Kleur onderste helft", "Kolor dolnej połowy", "下半分の色", "下半部颜色", "아래쪽 절반 색"],
+"Upper half color": ["Color de la mitad superior", "Cor da metade superior", "Couleur de la moitié supérieure", "Farbe obere Hälfte", "Colore metà superiore", "Kleur bovenste helft", "Kolor górnej połowy", "上半分の色", "上半部颜色", "위쪽 절반 색"],
+"Median line color": ["Color de la línea de mediana", "Cor da linha da mediana", "Couleur de la ligne médiane", "Farbe der Medianlinie", "Colore linea mediana", "Kleur mediaanlijn", "Kolor linii mediany", "中央値の線の色", "中位数线颜色", "중앙값 선 색"],
+"Whiskers reach": ["Alcance de los bigotes", "Alcance dos bigodes", "Portée des moustaches", "Whisker-Reichweite", "Estensione dei baffi", "Bereik snorharen", "Zasięg wąsów", "ひげの範囲", "须线范围", "수염 범위"],
+"Caps": ["Remates", "Terminais", "Embouts", "Endstriche", "Terminali", "Dwarsstreepjes", "Zakończenia", "キャップ", "端线", "끝선"],
+"Whisker color": ["Color de los bigotes", "Cor dos bigodes", "Couleur des moustaches", "Whisker-Farbe", "Colore baffi", "Kleur snorharen", "Kolor wąsów", "ひげの色", "须线颜色", "수염 색"],
+"Quartile method": ["Método de cuartiles", "Método de quartis", "Méthode des quartiles", "Quartilmethode", "Metodo dei quartili", "Kwartielmethode", "Metoda kwartyli", "四分位の計算方法", "四分位数方法", "사분위수 방법"],
+"Show n under each box": ["Mostrar n bajo cada caja", "Mostrar n sob cada caixa", "Afficher n sous chaque boîte", "n unter jedem Kasten anzeigen", "Mostra n sotto ogni scatola", "n onder elke box tonen", "Pokaż n pod każdym pudełkiem", "各箱の下に n を表示", "在每个箱体下显示 n", "각 상자 아래 n 표시"],
+"Median label": ["Etiqueta de la mediana", "Rótulo da mediana", "Étiquette de la médiane", "Medianbeschriftung", "Etichetta mediana", "Label mediaan", "Etykieta mediany", "中央値のラベル", "中位数标签", "중앙값 레이블"],
+"Mean marker (Pro)": ["Marca de la media (Pro)", "Marcador da média (Pro)", "Repère de la moyenne (Pro)", "Mittelwertmarkierung (Pro)", "Indicatore della media (Pro)", "Markering gemiddelde (Pro)", "Znacznik średniej (Pro)", "平均のマーカー (Pro)", "平均值标记 (Pro)", "평균 표식(Pro)"],
+"Mean color": ["Color de la media", "Cor da média", "Couleur de la moyenne", "Mittelwertfarbe", "Colore media", "Kleur gemiddelde", "Kolor średniej", "平均の色", "平均值颜色", "평균 색"],
+"Notches (Pro)": ["Muescas (Pro)", "Entalhes (Pro)", "Encoches (Pro)", "Kerben (Pro)", "Tacche (Pro)", "Inkepingen (Pro)", "Wcięcia (Pro)", "ノッチ (Pro)", "凹口 (Pro)", "노치(Pro)"],
+"Show all points (Pro)": ["Mostrar todos los puntos (Pro)", "Mostrar todos os pontos (Pro)", "Afficher tous les points (Pro)", "Alle Punkte anzeigen (Pro)", "Mostra tutti i punti (Pro)", "Alle punten tonen (Pro)", "Pokaż wszystkie punkty (Pro)", "すべての点を表示 (Pro)", "显示所有点 (Pro)", "모든 점 표시(Pro)"],
+"Jitter %": ["Separación de los puntos %", "Separação dos pontos %", "Écartement des points %", "Punktabstand %", "Separazione dei punti %", "Puntafstand %", "Rozsunięcie punktów %", "点のジッター %", "点的抖动 %", "점 지터 %"],
+"Point size": ["Tamaño de punto", "Tamanho do ponto", "Taille des points", "Punktgröße", "Dimensione punti", "Puntgrootte", "Rozmiar punktu", "点のサイズ", "点大小", "점 크기"],
+"Point color": ["Color de los puntos", "Cor dos pontos", "Couleur des points", "Punktfarbe", "Colore punti", "Puntkleur", "Kolor punktów", "点の色", "点颜色", "점 색"],
+"Point border color": ["Color del borde de los puntos", "Cor da borda dos pontos", "Couleur de bordure des points", "Punktrahmenfarbe", "Colore bordo punti", "Randkleur punten", "Kolor obramowania punktów", "点の枠線の色", "点边框颜色", "점 테두리 색"],
+"Point border width": ["Grosor del borde de los puntos", "Largura da borda dos pontos", "Épaisseur de bordure des points", "Punktrahmenbreite", "Spessore bordo punti", "Randbreedte punten", "Grubość obramowania punktów", "点の枠線の幅", "点边框宽度", "점 테두리 두께"],
+"Point opacity %": ["Opacidad de los puntos %", "Opacidade dos pontos %", "Opacité des points %", "Punktdeckkraft %", "Opacità punti %", "Dekking punten %", "Krycie punktów %", "点の不透明度 %", "点不透明度 %", "점 불투명도 %"],
+"Outlier size": ["Tamaño de los valores atípicos", "Tamanho dos valores discrepantes", "Taille des valeurs aberrantes", "Größe der Ausreißer", "Dimensione valori anomali", "Grootte uitschieters", "Rozmiar wartości odstających", "外れ値のサイズ", "离群值大小", "이상값 크기"],
+"Outlier color": ["Color de los valores atípicos", "Cor dos valores discrepantes", "Couleur des valeurs aberrantes", "Farbe der Ausreißer", "Colore valori anomali", "Kleur uitschieters", "Kolor wartości odstających", "外れ値の色", "离群值颜色", "이상값 색"],
+"Show violin (Pro)": ["Mostrar violín (Pro)", "Mostrar violino (Pro)", "Afficher le violon (Pro)", "Violine anzeigen (Pro)", "Mostra violino (Pro)", "Viool tonen (Pro)", "Pokaż skrzypce (Pro)", "バイオリンを表示 (Pro)", "显示小提琴图 (Pro)", "바이올린 표시(Pro)"],
+"Violin color": ["Color del violín", "Cor do violino", "Couleur du violon", "Violinenfarbe", "Colore del violino", "Kleur viool", "Kolor skrzypiec", "バイオリンの色", "小提琴图颜色", "바이올린 색"],
+"Violin opacity %": ["Opacidad del violín %", "Opacidade do violino %", "Opacité du violon %", "Violinen-Deckkraft %", "Opacità violino %", "Dekking viool %", "Krycie skrzypiec %", "バイオリンの不透明度 %", "小提琴图不透明度 %", "바이올린 불투명도 %"],
+"Sort boxes by": ["Ordenar cajas por", "Classificar caixas por", "Trier les boîtes par", "Kästen sortieren nach", "Ordina scatole per", "Boxen sorteren op", "Sortuj pudełka według", "箱の並べ替え", "箱体排序依据", "상자 정렬 기준"],
+"Descending": ["Descendente", "Decrescente", "Décroissant", "Absteigend", "Decrescente", "Aflopend", "Malejąco", "降順", "降序", "내림차순"],
+"Reference line (Pro)": ["Línea de referencia (Pro)", "Linha de referência (Pro)", "Ligne de référence (Pro)", "Bezugslinie (Pro)", "Linea di riferimento (Pro)", "Referentielijn (Pro)", "Linia odniesienia (Pro)", "参照線 (Pro)", "参考线 (Pro)", "참조선(Pro)"],
+"Label": ["Etiqueta", "Rótulo", "Étiquette", "Beschriftung", "Etichetta", "Label", "Etykieta", "ラベル", "标签", "레이블"],
+"Line color": ["Color de la línea", "Cor da linha", "Couleur de la ligne", "Linienfarbe", "Colore linea", "Lijnkleur", "Kolor linii", "線の色", "线条颜色", "선 색"],
+"Second line (Pro)": ["Segunda línea (Pro)", "Segunda linha (Pro)", "Deuxième ligne (Pro)", "Zweite Linie (Pro)", "Seconda linea (Pro)", "Tweede lijn (Pro)", "Druga linia (Pro)", "2 本目の線 (Pro)", "第二条线 (Pro)", "두 번째 선(Pro)"],
+"Second value": ["Segundo valor", "Segundo valor", "Deuxième valeur", "Zweiter Wert", "Secondo valore", "Tweede waarde", "Druga wartość", "2 つ目の値", "第二个值", "두 번째 값"],
+"Second label": ["Segunda etiqueta", "Segundo rótulo", "Deuxième étiquette", "Zweite Beschriftung", "Seconda etichetta", "Tweede label", "Druga etykieta", "2 つ目のラベル", "第二个标签", "두 번째 레이블"],
+"Show": ["Mostrar", "Mostrar", "Afficher", "Anzeigen", "Mostra", "Tonen", "Pokaż", "表示", "显示", "표시"],
+"Font": ["Fuente", "Fonte", "Police", "Schriftart", "Carattere", "Lettertype", "Czcionka", "フォント", "字体", "글꼴"],
+"Bold": ["Negrita", "Negrito", "Gras", "Fett", "Grassetto", "Vet", "Pogrubienie", "太字", "加粗", "굵게"],
+"Title": ["Título", "Título", "Titre", "Titel", "Titolo", "Titel", "Tytuł", "タイトル", "标题", "제목"],
+"Title text": ["Texto del título", "Texto do título", "Texte du titre", "Titeltext", "Testo del titolo", "Titeltekst", "Tekst tytułu", "タイトルのテキスト", "标题文本", "제목 텍스트"],
+"Gridlines": ["Líneas de cuadrícula", "Linhas de grade", "Quadrillage", "Gitternetzlinien", "Griglia", "Rasterlijnen", "Linie siatki", "グリッド線", "网格线", "눈금선"],
+"Automatic range": ["Rango automático", "Intervalo automático", "Plage automatique", "Automatischer Bereich", "Intervallo automatico", "Automatisch bereik", "Zakres automatyczny", "自動範囲", "自动范围", "자동 범위"],
+"Minimum": ["Mínimo", "Mínimo", "Minimum", "Minimum", "Minimo", "Minimum", "Minimum", "最小値", "最小值", "최소값"],
+"Maximum": ["Máximo", "Máximo", "Maximum", "Maximum", "Massimo", "Maximum", "Maksimum", "最大値", "最大值", "최대값"],
+"Text size": ["Tamaño del texto", "Tamanho do texto", "Taille du texte", "Textgröße", "Dimensione testo", "Tekstgrootte", "Rozmiar tekstu", "テキストのサイズ", "文本大小", "텍스트 크기"],
+"Text color": ["Color del texto", "Cor do texto", "Couleur du texte", "Textfarbe", "Colore testo", "Tekstkleur", "Kolor tekstu", "テキストの色", "文本颜色", "텍스트 색"],
+"Position": ["Posición", "Posição", "Position", "Position", "Posizione", "Positie", "Położenie", "位置", "位置", "위치"],
+"Show table (Pro)": ["Mostrar tabla (Pro)", "Mostrar tabela (Pro)", "Afficher le tableau (Pro)", "Tabelle anzeigen (Pro)", "Mostra tabella (Pro)", "Tabel tonen (Pro)", "Pokaż tabelę (Pro)", "テーブルを表示 (Pro)", "显示表格 (Pro)", "표 표시(Pro)"],
+"Color": ["Color", "Cor", "Couleur", "Farbe", "Colore", "Kleur", "Kolor", "色", "颜色", "색"],
+# enumeraciones
+"Clean": ["Limpia", "Limpo", "Épuré", "Klar", "Pulito", "Strak", "Czysty", "クリーン", "简洁", "깔끔"],
+"Classic": ["Clásica", "Clássico", "Classique", "Klassisch", "Classico", "Klassiek", "Klasyczny", "クラシック", "经典", "클래식"],
+"Minimal": ["Mínima", "Mínimo", "Minimal", "Minimal", "Minimale", "Minimaal", "Minimalny", "ミニマル", "极简", "미니멀"],
+"Contrast": ["Contraste", "Contraste", "Contraste", "Kontrast", "Contrasto", "Contrast", "Kontrast", "コントラスト", "对比", "대비"],
+"Compact": ["Compacta", "Compacto", "Compact", "Kompakt", "Compatto", "Compact", "Kompaktowy", "コンパクト", "紧凑", "간결"],
+"IBCS style": ["Estilo IBCS", "Estilo IBCS", "Style IBCS", "IBCS-Stil", "Stile IBCS", "IBCS-stijl", "Styl IBCS", "IBCS スタイル", "IBCS 样式", "IBCS 스타일"],
+"Header background": ["Fondo de la cabecera", "Fundo do cabeçalho", "Arrière-plan de l’en-tête", "Kopfzeilenhintergrund", "Sfondo dell’intestazione", "Achtergrond koptekst", "Tło nagłówka", "ヘッダーの背景", "标题背景", "머리글 배경"],
+"Header text color": ["Color del texto de la cabecera", "Cor do texto do cabeçalho", "Couleur du texte de l’en-tête", "Textfarbe der Kopfzeile", "Colore testo intestazione", "Tekstkleur koptekst", "Kolor tekstu nagłówka", "ヘッダーのテキストの色", "标题文本颜色", "머리글 텍스트 색"],
+"Alternate row color": ["Color de filas alternas", "Cor das linhas alternadas", "Couleur des lignes alternées", "Farbe abwechselnder Zeilen", "Colore righe alternate", "Kleur afwisselende rijen", "Kolor naprzemiennych wierszy", "交互の行の色", "交替行颜色", "교대 행 색"],
+"Small multiples": ["Múltiplos pequeños", "Múltiplos pequenos", "Multiples petits", "Kleine Vielfache", "Multipli piccoli", "Kleine veelvouden", "Małe wielokrotności", "スモール マルチプル", "小型序列图", "작은 배수"],
+"Columns (0 = automatic)": ["Columnas (0 = automático)", "Colunas (0 = automático)", "Colonnes (0 = automatique)", "Spalten (0 = automatisch)", "Colonne (0 = automatico)", "Kolommen (0 = automatisch)", "Kolumny (0 = automatycznie)", "列 (0 = 自動)", "列 (0 = 自动)", "열(0 = 자동)"],
+"Space between panels": ["Espacio entre paneles", "Espaço entre painéis", "Espace entre les panneaux", "Abstand zwischen Feldern", "Spazio tra i pannelli", "Ruimte tussen panelen", "Odstęp między panelami", "パネル間の間隔", "面板间距", "패널 간 간격"],
+"Title size": ["Tamaño del título", "Tamanho do título", "Taille du titre", "Titelgröße", "Dimensione titolo", "Titelgrootte", "Rozmiar tytułu", "タイトルのサイズ", "标题大小", "제목 크기"],
+"Title color": ["Color del título", "Cor do título", "Couleur du titre", "Titelfarbe", "Colore titolo", "Titelkleur", "Kolor tytułu", "タイトルの色", "标题颜色", "제목 색"],
+"Bold title": ["Título en negrita", "Título em negrito", "Titre en gras", "Fetter Titel", "Titolo in grassetto", "Vette titel", "Pogrubiony tytuł", "タイトルを太字", "标题加粗", "굵은 제목"],
+"Title alignment": ["Alineación del título", "Alinhamento do título", "Alignement du titre", "Titelausrichtung", "Allineamento titolo", "Titeluitlijning", "Wyrównanie tytułu", "タイトルの配置", "标题对齐", "제목 맞춤"],
+"Left": ["Izquierda", "Esquerda", "Gauche", "Links", "Sinistra", "Links", "Do lewej", "左", "左", "왼쪽"],
+"Center": ["Centro", "Centro", "Centre", "Mitte", "Centro", "Midden", "Do środka", "中央", "居中", "가운데"],
+"Panel background": ["Fondo del panel", "Fundo do painel", "Arrière-plan du panneau", "Feldhintergrund", "Sfondo del pannello", "Achtergrond paneel", "Tło panelu", "パネルの背景", "面板背景", "패널 배경"],
+"Panel border": ["Borde del panel", "Borda do painel", "Bordure du panneau", "Feldrahmen", "Bordo del pannello", "Paneelrand", "Obramowanie panelu", "パネルの枠線", "面板边框", "패널 테두리"],
+"Panel border color": ["Color del borde del panel", "Cor da borda do painel", "Couleur de bordure du panneau", "Farbe des Feldrahmens", "Colore bordo pannello", "Kleur paneelrand", "Kolor obramowania panelu", "パネルの枠線の色", "面板边框颜色", "패널 테두리 색"],
+"Vertical": ["Vertical", "Vertical", "Verticale", "Vertikal", "Verticale", "Verticaal", "Pionowa", "縦", "垂直", "세로"],
+"Horizontal": ["Horizontal", "Horizontal", "Horizontale", "Horizontal", "Orizzontale", "Horizontaal", "Pozioma", "横", "水平", "가로"],
+"1.5 × IQR (Tukey)": ["1,5 × RIC (Tukey)", "1,5 × AIQ (Tukey)", "1,5 × EIQ (Tukey)", "1,5 × IQR (Tukey)", "1,5 × IQR (Tukey)", "1,5 × IKA (Tukey)", "1,5 × IQR (Tukey)", "1.5 × IQR (Tukey)", "1.5 × IQR (Tukey)", "1.5 × IQR(Tukey)"],
+"Minimum to maximum": ["Del mínimo al máximo", "Do mínimo ao máximo", "Du minimum au maximum", "Minimum bis Maximum", "Dal minimo al massimo", "Minimum tot maximum", "Od minimum do maksimum", "最小値から最大値", "最小值到最大值", "최소값부터 최대값"],
+"5th to 95th percentile (Pro)": ["Percentil 5 a 95 (Pro)", "Percentil 5 a 95 (Pro)", "5e au 95e centile (Pro)", "5. bis 95. Perzentil (Pro)", "Dal 5° al 95° percentile (Pro)", "5e tot 95e percentiel (Pro)", "Od 5. do 95. percentyla (Pro)", "5 ～ 95 パーセンタイル (Pro)", "第 5 到第 95 百分位 (Pro)", "5~95 백분위수(Pro)"],
+"10th to 90th percentile (Pro)": ["Percentil 10 a 90 (Pro)", "Percentil 10 a 90 (Pro)", "10e au 90e centile (Pro)", "10. bis 90. Perzentil (Pro)", "Dal 10° al 90° percentile (Pro)", "10e tot 90e percentiel (Pro)", "Od 10. do 90. percentyla (Pro)", "10 ～ 90 パーセンタイル (Pro)", "第 10 到第 90 百分位 (Pro)", "10~90 백분위수(Pro)"],
+"Inclusive (Excel QUARTILE.INC)": ["Inclusivo (Excel CUARTIL.INC)", "Inclusivo (Excel QUARTIL.INC)", "Inclusif (Excel QUARTILE.INCLURE)", "Inklusiv (Excel QUARTILE.INKL)", "Inclusivo (Excel ESC.QUARTILE.INC)", "Inclusief (Excel KWARTIEL.INC)", "Włączny (Excel QUARTYL.PRZEDZ.ZAMK)", "包括 (Excel QUARTILE.INC)", "包含 (Excel QUARTILE.INC)", "포함(Excel QUARTILE.INC)"],
+"Exclusive (Excel QUARTILE.EXC) (Pro)": ["Exclusivo (Excel CUARTIL.EXC) (Pro)", "Exclusivo (Excel QUARTIL.EXC) (Pro)", "Exclusif (Excel QUARTILE.EXCLURE) (Pro)", "Exklusiv (Excel QUARTILE.EXKL) (Pro)", "Esclusivo (Excel ESC.QUARTILE.ESC) (Pro)", "Exclusief (Excel KWARTIEL.EXC) (Pro)", "Wyłączny (Excel QUARTYL.PRZEDZ.OTW) (Pro)", "除外 (Excel QUARTILE.EXC) (Pro)", "排除 (Excel QUARTILE.EXC) (Pro)", "제외(Excel QUARTILE.EXC)(Pro)"],
+"Tukey hinges (Pro)": ["Bisagras de Tukey (Pro)", "Dobradiças de Tukey (Pro)", "Charnières de Tukey (Pro)", "Tukey-Angelpunkte (Pro)", "Cerniere di Tukey (Pro)", "Tukey-scharnieren (Pro)", "Zawiasy Tukeya (Pro)", "Tukey のヒンジ (Pro)", "Tukey 枢纽 (Pro)", "Tukey 힌지(Pro)"],
+"Data order": ["Orden de los datos", "Ordem dos dados", "Ordre des données", "Datenreihenfolge", "Ordine dei dati", "Volgorde van gegevens", "Kolejność danych", "データの順序", "数据顺序", "데이터 순서"],
+"Name": ["Nombre", "Nome", "Nom", "Name", "Nome", "Naam", "Nazwa", "名前", "名称", "이름"],
+"Median (Pro)": ["Mediana (Pro)", "Mediana (Pro)", "Médiane (Pro)", "Median (Pro)", "Mediana (Pro)", "Mediaan (Pro)", "Mediana (Pro)", "中央値 (Pro)", "中位数 (Pro)", "중앙값(Pro)"],
+"Mean (Pro)": ["Media (Pro)", "Média (Pro)", "Moyenne (Pro)", "Mittelwert (Pro)", "Media (Pro)", "Gemiddelde (Pro)", "Średnia (Pro)", "平均 (Pro)", "平均值 (Pro)", "평균(Pro)"],
+"Spread (IQR) (Pro)": ["Dispersión (RIC) (Pro)", "Dispersão (AIQ) (Pro)", "Dispersion (EIQ) (Pro)", "Streuung (IQR) (Pro)", "Dispersione (IQR) (Pro)", "Spreiding (IKA) (Pro)", "Rozproszenie (IQR) (Pro)", "散らばり (IQR) (Pro)", "离散度 (IQR) (Pro)", "분산(IQR)(Pro)"],
+"Count (Pro)": ["Recuento (Pro)", "Contagem (Pro)", "Nombre (Pro)", "Anzahl (Pro)", "Conteggio (Pro)", "Aantal (Pro)", "Liczba (Pro)", "件数 (Pro)", "计数 (Pro)", "개수(Pro)"],
+"Top": ["Arriba", "Superior", "Haut", "Oben", "In alto", "Boven", "Góra", "上", "顶部", "위쪽"],
+"Bottom": ["Abajo", "Inferior", "Bas", "Unten", "In basso", "Onder", "Dół", "下", "底部", "아래쪽"],
+# textos propios
+"(Blank)": ["(En blanco)", "(Em branco)", "(Vide)", "(Leer)", "(Vuoto)", "(Leeg)", "(Puste)", "(空白)", "(空白)", "(비어 있음)"],
+"Median": ["Mediana", "Mediana", "Médiane", "Median", "Mediana", "Mediaan", "Mediana", "中央値", "中位数", "중앙값"],
+"Group": ["Grupo", "Grupo", "Groupe", "Gruppe", "Gruppo", "Groep", "Grupa", "グループ", "分组", "그룹"],
+"Panel": ["Panel", "Painel", "Panneau", "Feld", "Pannello", "Paneel", "Panel", "パネル", "面板", "패널"],
+"Min": ["Mín.", "Mín.", "Min", "Min", "Min", "Min", "Min", "最小", "最小", "최소"],
+"Max": ["Máx.", "Máx.", "Max", "Max", "Max", "Max", "Maks", "最大", "最大", "최대"],
+"Mean": ["Media", "Média", "Moyenne", "Mittelwert", "Media", "Gemiddelde", "Średnia", "平均", "平均值", "평균"],
+"Std dev": ["Desv. est.", "Desv. pad.", "Écart type", "Std.-Abw.", "Dev. std.", "Std.afw.", "Odch. std.", "標準偏差", "标准差", "표준 편차"],
+"Outliers": ["Valores atípicos", "Valores discrepantes", "Valeurs aberrantes", "Ausreißer", "Valori anomali", "Uitschieters", "Wartości odstające", "外れ値", "离群值", "이상값"],
+"Add an ID to Detail (rows) — order, employee, ticket — so each box shows a distribution, not one total per category.": [
+    "Añade un ID a Detalle (filas) —pedido, empleado, ticket— para que cada caja muestre una distribución y no un total por categoría.",
+    "Adicione um ID em Detalhe (linhas) — pedido, funcionário, chamado — para que cada caixa mostre uma distribuição, não um total por categoria.",
+    "Ajoutez un ID dans Détail (lignes) — commande, employé, ticket — pour que chaque boîte montre une distribution, pas un total par catégorie.",
+    "Fügen Sie eine ID unter Detail (Zeilen) hinzu – Auftrag, Mitarbeiter, Ticket –, damit jeder Kasten eine Verteilung zeigt und nicht eine Summe pro Kategorie.",
+    "Aggiungi un ID in Dettaglio (righe) — ordine, dipendente, ticket — perché ogni scatola mostri una distribuzione e non un totale per categoria.",
+    "Voeg een ID toe aan Detail (rijen) — order, medewerker, ticket — zodat elke box een verdeling toont en geen totaal per categorie.",
+    "Dodaj ID w Szczegóły (wiersze) — zamówienie, pracownik, zgłoszenie — aby każde pudełko pokazywało rozkład, a nie sumę dla kategorii.",
+    "詳細 (行) に ID (注文、従業員、チケット) を追加すると、各箱がカテゴリごとの合計ではなく分布を示します。",
+    "请在明细 (行) 中添加 ID（订单、员工、工单），每个箱体才会显示分布，而不是每个类别一个总计。",
+    "세부 정보(행)에 ID(주문, 직원, 티켓)를 추가해야 각 상자가 범주별 합계가 아닌 분포를 보여 줍니다."],
+"Pro features not applied in reading view:": ["Funciones Pro no aplicadas en la vista de lectura:", "Recursos Pro não aplicados no modo de leitura:", "Fonctions Pro non appliquées en mode lecture :", "In der Leseansicht nicht angewendete Pro-Funktionen:", "Funzioni Pro non applicate in visualizzazione lettura:", "Pro-functies niet toegepast in leesweergave:", "Funkcje Pro niezastosowane w widoku do odczytu:", "閲覧ビューでは適用されない Pro 機能:", "阅读视图中未应用的 Pro 功能：", "읽기용 보기에 적용되지 않은 Pro 기능:"],
+"Pro preview": ["Vista previa Pro", "Prévia Pro", "Aperçu Pro", "Pro-Vorschau", "Anteprima Pro", "Pro-voorbeeld", "Podgląd Pro", "Pro プレビュー", "Pro 预览", "Pro 미리 보기"],
+"Box & Whisker": ["Box & Whisker", "Box & Whisker", "Box & Whisker", "Box & Whisker", "Box & Whisker", "Box & Whisker", "Box & Whisker", "Box & Whisker", "Box & Whisker", "Box & Whisker"],
+"In Power BI Desktop the visual uses the first rows Power BI sends: publish to the service to use them all.": [
+    "En Power BI Desktop el visual usa las primeras filas que envía Power BI: publica en el servicio para usarlas todas.",
+    "No Power BI Desktop o visual usa as primeiras linhas que o Power BI envia: publique no serviço para usar todas.",
+    "Dans Power BI Desktop, le visuel utilise les premières lignes envoyées par Power BI : publiez dans le service pour toutes les utiliser.",
+    "In Power BI Desktop verwendet das Visual die ersten Zeilen, die Power BI sendet: Veröffentlichen Sie im Dienst, um alle zu nutzen.",
+    "In Power BI Desktop l’oggetto visivo usa le prime righe inviate da Power BI: pubblica nel servizio per usarle tutte.",
+    "In Power BI Desktop gebruikt de visual de eerste rijen die Power BI stuurt: publiceer naar de service om ze allemaal te gebruiken.",
+    "W Power BI Desktop wizualizacja używa pierwszych wierszy wysłanych przez Power BI: opublikuj w usłudze, aby użyć wszystkich.",
+    "Power BI Desktop では、Power BI が送る最初の行だけを使います。すべて使うにはサービスに発行してください。",
+    "在 Power BI Desktop 中，视觉对象使用 Power BI 发送的前几行：发布到服务即可使用全部行。",
+    "Power BI Desktop에서는 Power BI가 보낸 처음 행을 사용합니다. 모두 사용하려면 서비스에 게시하세요."],
+"Power BI sent only part of the rows: the boxes reflect the rows received.": [
+    "Power BI solo ha enviado parte de las filas: las cajas reflejan las filas recibidas.",
+    "O Power BI enviou só parte das linhas: as caixas refletem as linhas recebidas.",
+    "Power BI n’a envoyé qu’une partie des lignes : les boîtes reflètent les lignes reçues.",
+    "Power BI hat nur einen Teil der Zeilen gesendet: Die Kästen zeigen die empfangenen Zeilen.",
+    "Power BI ha inviato solo una parte delle righe: le scatole riflettono le righe ricevute.",
+    "Power BI heeft maar een deel van de rijen gestuurd: de boxen tonen de ontvangen rijen.",
+    "Power BI wysłał tylko część wierszy: pudełka odzwierciedlają otrzymane wiersze.",
+    "Power BI は行の一部だけを送りました。箱は受け取った行を表しています。",
+    "Power BI 只发送了部分行：箱体反映已收到的行。",
+    "Power BI가 행의 일부만 보냈습니다. 상자는 받은 행을 반영합니다."],
+"Quartiles": ["Cuartiles", "Quartis", "Quartiles", "Quartile", "Quartili", "Kwartielen", "Kwartyle", "四分位", "四分位数", "사분위수"],
+"avg": ["media", "média", "moy.", "Mittel", "media", "gem.", "śr.", "平均", "平均", "평균"],
+"See how values spread in each category: median, quartiles and outliers.": [
+    "Mira cómo se reparten los valores en cada categoría: mediana, cuartiles y valores atípicos.",
+    "Veja como os valores se distribuem em cada categoria: mediana, quartis e valores discrepantes.",
+    "Voyez comment les valeurs se répartissent dans chaque catégorie : médiane, quartiles et valeurs aberrantes.",
+    "Sehen Sie, wie sich die Werte je Kategorie verteilen: Median, Quartile und Ausreißer.",
+    "Guarda come si distribuiscono i valori in ogni categoria: mediana, quartili e valori anomali.",
+    "Zie hoe de waarden per categorie verdeeld zijn: mediaan, kwartielen en uitschieters.",
+    "Zobacz, jak rozkładają się wartości w każdej kategorii: mediana, kwartyle i wartości odstające.",
+    "カテゴリごとの値の分布 (中央値、四分位、外れ値) を確認します。",
+    "查看每个类别中数值的分布：中位数、四分位数和离群值。",
+    "범주별 값의 분포(중앙값, 사분위수, 이상값)를 확인하세요."],
+"How values spread in each category.": ["Cómo se reparten los valores en cada categoría.", "Como os valores se distribuem em cada categoria.", "Comment les valeurs se répartissent par catégorie.", "Wie sich die Werte je Kategorie verteilen.", "Come si distribuiscono i valori per categoria.", "Hoe de waarden per categorie verdeeld zijn.", "Jak rozkładają się wartości w kategoriach.", "カテゴリごとの値の分布。", "每个类别中数值的分布。", "범주별 값의 분포."],
+"Guide": ["Guía", "Guia", "Guide", "Anleitung", "Guida", "Handleiding", "Przewodnik", "ガイド", "指南", "가이드"],
+"support page": ["página de soporte", "página de suporte", "page d’assistance", "Supportseite", "pagina di supporto", "ondersteuningspagina", "strona pomocy", "サポート ページ", "支持页面", "지원 페이지"],
+"Video": ["Vídeo", "Vídeo", "Vidéo", "Video", "Video", "Video", "Wideo", "ビデオ", "视频", "동영상"],
+"Product page": ["Ficha del producto", "Página do produto", "Page du produit", "Produktseite", "Pagina del prodotto", "Productpagina", "Strona produktu", "製品ページ", "产品页面", "제품 페이지"],
+"Add {cat}, {val} and {det}.": ["Añade {cat}, {val} y {det}.", "Adicione {cat}, {val} e {det}.", "Ajoutez {cat}, {val} et {det}.", "Fügen Sie {cat}, {val} und {det} hinzu.", "Aggiungi {cat}, {val} e {det}.", "Voeg {cat}, {val} en {det} toe.", "Dodaj {cat}, {val} i {det}.", "{cat}、{val}、{det} を追加します。", "添加 {cat}、{val} 和 {det}。", "{cat}, {val}, {det}을(를) 추가하세요."],
+"one box per value: region, product, team": ["una caja por valor: región, producto, equipo", "uma caixa por valor: região, produto, equipe", "une boîte par valeur : région, produit, équipe", "ein Kasten pro Wert: Region, Produkt, Team", "una scatola per valore: regione, prodotto, team", "één box per waarde: regio, product, team", "jedno pudełko na wartość: region, produkt, zespół", "値ごとに 1 つの箱 (地域、製品、チーム)", "每个值一个箱体：区域、产品、团队", "값마다 상자 하나: 지역, 제품, 팀"],
+"one box per value": ["una caja por valor", "uma caixa por valor", "une boîte par valeur", "ein Kasten pro Wert", "una scatola per valore", "één box per waarde", "jedno pudełko na wartość", "値ごとに 1 つの箱", "每个值一个箱体", "값마다 상자 하나"],
+"the measure to study, such as days or amount": ["la medida que quieres estudiar, como días o importe", "a medida a estudar, como dias ou valor", "la mesure à étudier, comme des jours ou un montant", "das zu untersuchende Measure, z. B. Tage oder Betrag", "la misura da studiare, come giorni o importo", "de meting die u wilt bestuderen, zoals dagen of bedrag", "miara do analizy, np. dni lub kwota", "調べるメジャー (日数や金額など)", "要研究的度量值，例如天数或金额", "살펴볼 측정값(예: 일수, 금액)"],
+"the measure to study": ["la medida que quieres estudiar", "a medida a estudar", "la mesure à étudier", "das zu untersuchende Measure", "la misura da studiare", "de meting die u wilt bestuderen", "miara do analizy", "調べるメジャー", "要研究的度量值", "살펴볼 측정값"],
+"the ID of each row: order, employee, ticket": ["el ID de cada fila: pedido, empleado, ticket", "o ID de cada linha: pedido, funcionário, chamado", "l’ID de chaque ligne : commande, employé, ticket", "die ID jeder Zeile: Auftrag, Mitarbeiter, Ticket", "l’ID di ogni riga: ordine, dipendente, ticket", "de ID van elke rij: order, medewerker, ticket", "ID każdego wiersza: zamówienie, pracownik, zgłoszenie", "各行の ID (注文、従業員、チケット)", "每一行的 ID：订单、员工、工单", "각 행의 ID: 주문, 직원, 티켓"],
+"the ID of each row": ["el ID de cada fila", "o ID de cada linha", "l’ID de chaque ligne", "die ID jeder Zeile", "l’ID di ogni riga", "de ID van elke rij", "ID każdego wiersza", "各行の ID", "每一行的 ID", "각 행의 ID"],
+"Start in 3 steps": ["Empieza en 3 pasos", "Comece em 3 passos", "Commencer en 3 étapes", "In 3 Schritten starten", "Inizia in 3 passi", "Begin in 3 stappen", "Zacznij w 3 krokach", "3 ステップで開始", "3 步开始", "3단계로 시작"],
+"Help": ["Ayuda", "Ajuda", "Aide", "Hilfe", "Aiuto", "Help", "Pomoc", "ヘルプ", "帮助", "도움말"],
+"All points with jitter, mean and notches, violin, groups and small multiples, sorting by median, reference lines.": [
+    "Todos los puntos separados, media y muescas, violín, grupos y múltiplos pequeños, orden por mediana y líneas de referencia.",
+    "Todos os pontos separados, média e entalhes, violino, grupos e múltiplos pequenos, classificação pela mediana e linhas de referência.",
+    "Tous les points dispersés, moyenne et encoches, violon, groupes et multiples petits, tri par médiane, lignes de référence.",
+    "Alle Punkte mit Streuung, Mittelwert und Kerben, Violine, Gruppen und kleine Vielfache, Sortierung nach Median, Bezugslinien.",
+    "Tutti i punti con dispersione, media e tacche, violino, gruppi e multipli piccoli, ordinamento per mediana, linee di riferimento.",
+    "Alle punten met spreiding, gemiddelde en inkepingen, viool, groepen en kleine veelvouden, sorteren op mediaan, referentielijnen.",
+    "Wszystkie punkty z rozrzutem, średnia i wcięcia, skrzypce, grupy i małe wielokrotności, sortowanie według mediany, linie odniesienia.",
+    "ジッター付きの全点、平均とノッチ、バイオリン、グループとスモール マルチプル、中央値で並べ替え、参照線。",
+    "带抖动的全部点、平均值和凹口、小提琴图、分组和小型序列图、按中位数排序、参考线。",
+    "지터를 적용한 모든 점, 평균과 노치, 바이올린, 그룹과 작은 배수, 중앙값 정렬, 참조선."],
+"Points, violin, groups, small multiples, sort by median.": ["Puntos, violín, grupos, múltiplos pequeños, orden por mediana.", "Pontos, violino, grupos, múltiplos pequenos, classificação pela mediana.", "Points, violon, groupes, multiples petits, tri par médiane.", "Punkte, Violine, Gruppen, kleine Vielfache, Sortierung nach Median.", "Punti, violino, gruppi, multipli piccoli, ordinamento per mediana.", "Punten, viool, groepen, kleine veelvouden, sorteren op mediaan.", "Punkty, skrzypce, grupy, małe wielokrotności, sortowanie według mediany.", "点、バイオリン、グループ、スモール マルチプル、中央値で並べ替え。", "点、小提琴图、分组、小型序列图、按中位数排序。", "점, 바이올린, 그룹, 작은 배수, 중앙값 정렬."],
+"Box & Whisker: {0} — part of the Pro plan, shown here as a watermarked preview. Reading view shows the free result.": [
+    "Box & Whisker: {0} forma parte del plan Pro y aquí se muestra como vista previa con marca de agua. La vista de lectura muestra el resultado gratuito.",
+    "Box & Whisker: {0} faz parte do plano Pro e aparece aqui como prévia com marca d’água. O modo de leitura mostra o resultado gratuito.",
+    "Box & Whisker : {0} fait partie du plan Pro, affiché ici en aperçu avec filigrane. Le mode lecture montre le résultat gratuit.",
+    "Box & Whisker: {0} gehört zum Pro-Plan und wird hier als Vorschau mit Wasserzeichen gezeigt. Die Leseansicht zeigt das kostenlose Ergebnis.",
+    "Box & Whisker: {0} fa parte del piano Pro ed è mostrato qui come anteprima con filigrana. La visualizzazione lettura mostra il risultato gratuito.",
+    "Box & Whisker: {0} hoort bij het Pro-abonnement en wordt hier als voorbeeld met watermerk getoond. De leesweergave toont het gratis resultaat.",
+    "Box & Whisker: {0} należy do planu Pro i jest tu pokazane jako podgląd ze znakiem wodnym. Widok do odczytu pokazuje wynik bezpłatny.",
+    "Box & Whisker: {0} は Pro プランの機能で、ここでは透かし付きのプレビューです。閲覧ビューでは無料の結果が表示されます。",
+    "Box & Whisker：{0} 属于 Pro 计划，此处以带水印的预览显示。阅读视图显示免费结果。",
+    "Box & Whisker: {0}은(는) Pro 플랜 기능이며 여기서는 워터마크가 있는 미리 보기로 표시됩니다. 읽기용 보기는 무료 결과를 보여 줍니다."],
+"Box & Whisker: {0} — part of the Pro plan. Get a licence to enable it.": [
+    "Box & Whisker: {0} forma parte del plan Pro. Consigue una licencia para activarlo.",
+    "Box & Whisker: {0} faz parte do plano Pro. Obtenha uma licença para ativá-lo.",
+    "Box & Whisker : {0} fait partie du plan Pro. Obtenez une licence pour l’activer.",
+    "Box & Whisker: {0} gehört zum Pro-Plan. Erwerben Sie eine Lizenz, um es zu aktivieren.",
+    "Box & Whisker: {0} fa parte del piano Pro. Ottieni una licenza per attivarlo.",
+    "Box & Whisker: {0} hoort bij het Pro-abonnement. Neem een licentie om het in te schakelen.",
+    "Box & Whisker: {0} należy do planu Pro. Uzyskaj licencję, aby to włączyć.",
+    "Box & Whisker: {0} は Pro プランの機能です。有効にするにはライセンスを取得してください。",
+    "Box & Whisker：{0} 属于 Pro 计划。获取许可证即可启用。",
+    "Box & Whisker: {0}은(는) Pro 플랜 기능입니다. 사용하려면 라이선스를 받으세요."],
+"Hide gridlines": ["Ocultar líneas de cuadrícula", "Ocultar linhas de grade", "Masquer le quadrillage", "Gitternetzlinien ausblenden", "Nascondi griglia", "Rasterlijnen verbergen", "Ukryj linie siatki", "グリッド線を非表示", "隐藏网格线", "눈금선 숨기기"],
+"Show gridlines": ["Mostrar líneas de cuadrícula", "Mostrar linhas de grade", "Afficher le quadrillage", "Gitternetzlinien anzeigen", "Mostra griglia", "Rasterlijnen tonen", "Pokaż linie siatki", "グリッド線を表示", "显示网格线", "눈금선 표시"],
+# funciones Pro (marca de agua y aviso)
+"groups": ["grupos", "grupos", "groupes", "Gruppen", "gruppi", "groepen", "grupy", "グループ", "分组", "그룹"],
+"small multiples": ["múltiplos pequeños", "múltiplos pequenos", "multiples petits", "kleine Vielfache", "multipli piccoli", "kleine veelvouden", "małe wielokrotności", "スモール マルチプル", "小型序列图", "작은 배수"],
+"all points": ["todos los puntos", "todos os pontos", "tous les points", "alle Punkte", "tutti i punti", "alle punten", "wszystkie punkty", "すべての点", "所有点", "모든 점"],
+"violin": ["violín", "violino", "violon", "Violine", "violino", "viool", "skrzypce", "バイオリン", "小提琴图", "바이올린"],
+"color by quartile": ["color por cuartil", "cor por quartil", "couleur par quartile", "Farbe nach Quartil", "colore per quartile", "kleur per kwartiel", "kolor według kwartyla", "四分位の色分け", "按四分位着色", "사분위별 색"],
+"mean marker": ["marca de la media", "marcador da média", "repère de la moyenne", "Mittelwertmarkierung", "indicatore della media", "markering gemiddelde", "znacznik średniej", "平均のマーカー", "平均值标记", "평균 표식"],
+"notches": ["muescas", "entalhes", "encoches", "Kerben", "tacche", "inkepingen", "wcięcia", "ノッチ", "凹口", "노치"],
+"quartile method": ["método de cuartiles", "método de quartis", "méthode des quartiles", "Quartilmethode", "metodo dei quartili", "kwartielmethode", "metoda kwartyli", "四分位の計算方法", "四分位数方法", "사분위수 방법"],
+"percentile whiskers": ["bigotes por percentil", "bigodes por percentil", "moustaches par centile", "Perzentil-Whisker", "baffi per percentile", "snorharen op percentiel", "wąsy według percentyla", "パーセンタイルのひげ", "百分位须线", "백분위수 수염"],
+"sort by statistic": ["orden por estadístico", "classificação por estatística", "tri par statistique", "Sortierung nach Statistik", "ordinamento per statistica", "sorteren op statistiek", "sortowanie według statystyki", "統計で並べ替え", "按统计量排序", "통계 기준 정렬"],
+"reference lines": ["líneas de referencia", "linhas de referência", "lignes de référence", "Bezugslinien", "linee di riferimento", "referentielijnen", "linie odniesienia", "参照線", "参考线", "참조선"],
+"statistics table": ["tabla de estadísticos", "tabela de estatísticas", "tableau de statistiques", "Statistiktabelle", "tabella statistiche", "statistiektabel", "tabela statystyk", "統計テーブル", "统计表", "통계 표"],
+}
+
+# Tabla común heredada de Box & Whisker + los textos propios del radar.
+from i18n_radar import R
+T.update(R)
+
+def main():
+    caps = json.load(io.open(os.path.join(ROOT, "tools", "caps_en.json"), encoding="utf-8"))
+    ui = json.load(io.open(os.path.join(ROOT, "tools", "ui_en.json"), encoding="utf-8"))
+    en = {**caps, **ui, **FEAT}
+    falta = sorted({v for v in en.values() if v not in T})
+    if falta:
+        raise SystemExit("Sin traducción: " + " | ".join(falta))
+    out = {"en-US": en}
+    for i, lang in enumerate(L):
+        out[lang] = {k: T[v][i] for k, v in en.items()}
+    out["pt-PT"] = dict(out["pt-BR"])
+    for lang, d in out.items():
+        p = os.path.join(ROOT, "stringResources", lang)
+        os.makedirs(p, exist_ok=True)
+        io.open(os.path.join(p, "resources.resjson"), "w", encoding="utf-8", newline="\n").write(json.dumps(d, indent=2, ensure_ascii=False) + "\n")
+    # Bundle: claves que NO están en capabilities (Desktop no las traduce con getDisplayName).
+    capstxt = io.open(os.path.join(ROOT, "capabilities.json"), encoding="utf-8").read()
+    runtime = sorted(k for k in en if f'"{k}"' not in capstxt)
+    tabla = {lang: {k: d[k] for k in runtime if d[k] != en[k]} for lang, d in out.items() if lang != "en-US"}
+    ts = ["/**",
+          " * Traducciones de los textos que escribe el propio visual (pantalla de inicio, avisos, tabla, tooltips).",
+          " * Power BI Desktop solo resuelve con getDisplayName las claves declaradas en capabilities.json, así",
+          " * que estas viajan en el bundle. Generado por tools/i18n.py: no editar a mano.",
+          " */",
+          "export const STRINGS: Record<string, Record<string, string>> = " + json.dumps(tabla, ensure_ascii=False, indent=4) + ";", ""]
+    io.open(os.path.join(ROOT, "src", "strings.ts"), "w", encoding="utf-8", newline="\n").write("\n".join(ts))
+    print(len(en), "claves ·", len(out), "idiomas ·", len(runtime), "en el bundle")
+
+if __name__ == "__main__":
+    main()
