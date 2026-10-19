@@ -875,9 +875,20 @@ export class Visual implements IVisual {
         // Sitio para las etiquetas: según el texto más largo, sin pasar de un cuarto del ancho.
         const auto = Math.max(4, Math.floor(Math.min(W * 0.22, 150) / (axFont * 0.56)));
         const maxChars = s.axMaxChars > 0 ? Math.round(s.axMaxChars) : auto;
-        const short = (x: string) => x.length > maxChars ? x.slice(0, Math.max(1, maxChars - 1)) + "…" : x;
-        const longest = showAx ? Math.max(...axes.map(a => short(a.name).length)) * axFont * 0.56 : 0;
-        const padX = showAx ? longest + 10 : 8, padY = showAx ? axFont * 1.6 + 8 : 8;
+        const cut = (x: string) => x.length > maxChars ? x.slice(0, Math.max(1, maxChars - 1)) + "…" : x;
+        // Nombres largos ("Average of Q1 Clarity"): dos líneas partiendo por palabras antes de recortar.
+        const lines = (x: string): string[] => {
+            if (x.length <= maxChars || s.axMaxChars > 0) return [cut(x)];
+            const words = x.split(/\s+/);
+            let first = "";
+            while (words.length && (first ? first + " " + words[0] : words[0]).length <= maxChars) first = first ? first + " " + words.shift() : words.shift();
+            if (!first) return [cut(x)];
+            return words.length ? [first, cut(words.join(" "))] : [first];
+        };
+        const labelLines = new Map(axes.map(a => [a.key, lines(a.name + (a.reversed ? " ↓" : ""))]));
+        const twoLines = Array.from(labelLines.values()).some(l => l.length > 1);
+        const longest = showAx ? Math.max(...Array.from(labelLines.values()).map(l => Math.max(...l.map(x => x.length)))) * axFont * 0.56 : 0;
+        const padX = showAx ? longest + 10 : 8, padY = showAx ? axFont * (twoLines ? 2.8 : 1.6) + 8 : 8;
         const R = Math.max(10, Math.min((W - 2 * padX) / 2, (H - 2 * padY) / 2) - groupSpace);
         const cx = W / 2, cy = y0 + H / 2;
         const ang = (j: number) => -Math.PI / 2 + 2 * Math.PI * j / n;
@@ -965,9 +976,20 @@ export class Visual implements IVisual {
                 const c = Math.cos(ang(j)), sn = Math.sin(ang(j));
                 const lab = this.el("g", { "data-axis": a.key, class: "tcrd-axis" }, ax);
                 const off = 9 + (sn < -0.5 && s.ringLabels ? clamp(s.gridFont, 6, 20) * 0.6 : 0);   // que no pise el valor del último anillo
-                const t = this.el("text", { x: x + c * off, y: y + sn * off + axFont * 0.35 + (sn < -0.5 ? -axFont * 0.3 : sn > 0.5 ? axFont * 0.5 : 0),
+                const ls = labelLines.get(a.key);
+                // Arriba, las líneas crecen hacia arriba; abajo, hacia abajo; a los lados, centradas en el radio.
+                const lh = axFont * 1.15;
+                const shift = sn < -0.5 ? -(ls.length - 1) * lh : sn > 0.5 ? 0 : -(ls.length - 1) * lh / 2;
+                const tx = x + c * off;
+                const t = this.el("text", { x: tx, y: y + sn * off + axFont * 0.35 + (sn < -0.5 ? -axFont * 0.3 : sn > 0.5 ? axFont * 0.5 : 0) + shift,
                     "text-anchor": c > 0.3 ? "start" : c < -0.3 ? "end" : "middle", "font-size": axFont, fill: hc.on ? hc.fg : s.axColor }, lab);
-                t.textContent = short(a.name) + (a.reversed ? " ↓" : "");
+                ls.forEach((line, k) => {
+                    const span = document.createElementNS(SVG, "tspan");
+                    span.setAttribute("x", tx.toFixed(1));
+                    if (k > 0) span.setAttribute("dy", String(lh));
+                    span.textContent = line;
+                    t.appendChild(span);
+                });
                 const title = document.createElementNS(SVG, "title");
                 title.textContent = a.name + (a.reversed ? " — " + this.t("UI_LowerBetter", "lower is better") : "");
                 t.appendChild(title);
