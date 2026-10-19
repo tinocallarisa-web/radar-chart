@@ -1,0 +1,44 @@
+Radar & Spider Chart by TCViz 1.0.0.0 - GUID radarChartTCVizFAD508C05F394C63981E2CF54AD8BE8B
+
+SOURCE CODE
+github.com/tinocallarisa-web/radar-chart, branch "certification". Public, no credentials.
+
+TESTING THE PREMIUM FEATURES - NO KEY NEEDED
+Pro is granted by the AppSource plan through IVisualLicenseManager; no activation key exists.
+Import this .pbiviz and open a report in EDIT mode without a licence: each Pro capability is
+drawn WORKING under a "Pro preview" watermark that names it, and Power BI shows its licence
+notice. Reading view shows the free result. Sign in to Power BI Desktop: without licence
+information Pro stays off, with no watermark.
+
+WHAT TO CHECK
+1. Empty visual: start screen with the steps; resize it (three layouts).
+2. Sample report: Axis = Criterion, Values = Score (Average), Series = Supplier. Fixed scale
+from zero, 3 of 6 suppliers in the free version (the legend says so).
+3. Pro, editing without licence: Target = Required level, Small multiples = Family,
+Axis group = Area; Scale > Per axis. Watermark appears.
+4. Click a point: other visuals filter by that axis and series (every identity of the point).
+Click an axis label or a legend item to select the whole axis or series. Click again to
+clear; Ctrl+click adds. Bookmark, clear, apply bookmark: the selection comes back.
+5. Keyboard: arrows move between points, Enter selects, Esc clears. High contrast theme.
+6. Format mode: click a shape, the grid, an axis label, the legend or the background.
+
+SETUP GUIDE
+While editing, a small panel lists optional fields and templates. Its buttons save
+style.guide or style.template with persistProperties on a user click, never on selection.
+
+LINKS ON THE START SCREEN
+Guide (support page) and Product page (tcviz.com) open only on click or Enter, through
+host.launchUrl. The visual makes no request of its own; the icon is bundled.
+
+ROWS
+Categorical mapping, values grouped by Series, window of 30,000. Service: fetchMoreData,
+up to 20 segments; Desktop: first window. A warning icon says when rows were left out.
+
+PRIVACY
+privileges []. No network, no telemetry, no browser storage. No innerHTML. 12 languages;
+the visual's own texts are bundled.
+
+Rendering events: one started/finished pair per update(); the licence repaint does not call
+update(). eslint (powerbi-visuals plugin) 0 errors.
+
+Support/privacy/terms: tinocallarisa-web.github.io/radar-chart/

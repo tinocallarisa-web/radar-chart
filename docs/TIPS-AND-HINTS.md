@@ -1,0 +1,87 @@
+# Radar & Spider Chart by TCViz — Tips & Hints (1.0.0.0)
+
+A radar (spider) chart that reads honestly: a common scale from zero that does not move when you filter, axes
+that stay in place, and gaps where values are missing. This page is the short version of everything worth knowing.
+Full documentation, with search: <https://tinocallarisa-web.github.io/radar-chart/support.html>
+
+## Quick start
+
+1. Axis: the criteria — quality, price, delivery.
+2. Values: the score, set to Average.
+3. Series (legend): what you compare — supplier, employee, product.
+
+The most common surprise: the scale goes up to 20 on a 1-to-5 survey. Values is set to Sum, so several
+evaluations per supplier and criterion are added up. Set it to Average.
+
+## Field wells
+
+| Well | Limit | What it does |
+|---|---|---|
+| Axis | 3 to 40 axes | One spoke per value; a hierarchy gives drilldown. Without Axis, each measure is an axis. |
+| Values | up to 40 measures | The score. With Axis and no Series, each measure is a series. |
+| Series (legend) | 1 field; Free 3, Pro 12 | One shape per value; the legend says "3 of N series". |
+| Target (Pro) | 1 | Required level per axis: dashed shape and the gap per axis. |
+| Scale minimum / maximum (Pro) | 1 each | Range of each axis for the scale per axis. |
+| Axis group (Pro) | 1 | Named arcs around the radar; axes of a group stay together. |
+| Note (Pro) | 1 | A text measure shown next to the point. |
+| Small multiples (Pro) | 1 | One radar per value, same scale; each panel draws its own axes. |
+| Tooltips | several | Extra measures in the tooltip. |
+
+## Reading it
+
+- Further from the centre is higher — or better, on axes marked with a down arrow.
+- A gap in the outline is an empty value, never a zero. A real zero is drawn.
+- The area of a shape depends on the order of the axes: it is not a total, and the visual never shows one.
+- A note names an axis that flattens the others (ppm next to %), and counts values outside a fixed scale.
+
+## Format pane
+
+- Style template — Clean, Classic, Minimal, Contrast, Compact and IBCS style; your own settings win. The setup
+  guide can be turned back on here.
+- Series — one colour per series, fill opacity, line width, curved lines (they never go beyond the values of the
+  two axes they join).
+- Markers — size, shape (circle, square, diamond, triangle, or one per series), colour with conditional
+  formatting (fx) rules (Pro) when there is no Series field.
+- Scale — common, per axis (Pro) or % of target (Pro); start at zero; fixed minimum and maximum; rings;
+  "Lower is better" axis names (Pro).
+- Grid — polygon or circle, spokes, ring values, rotation. Axis labels — long names wrap onto two lines.
+- Axis order — data order (respects Sort by column), name, or value of the first series.
+- Target, Bands, Reference ring, Axis groups, Annotations, Center (mean of the axes), Legend, Value table,
+  Small multiples (one radar per series), Background.
+
+## Pro
+
+- 4 to 12 series.
+- Target with the gap per axis (shown for the selected series when there are several).
+- Scale per axis, from the data or from Scale minimum / maximum; each axis labels its own rings.
+- "Lower is better" axes, reversed and marked; % of target scale.
+- Bands and a reference ring.
+- Small multiples, or one radar per series without a panel field.
+- Axis groups, annotations, conditional formatting (fx) rules on markers, value table, mean of the axes.
+
+## Filtering
+
+- Click a point to filter by its axis and series; an axis label selects the axis; a legend item selects the series.
+- Click again to clear; Ctrl+click to add. Highlight from other visuals draws over a faded outline.
+- Bookmarks restore the selection. Right-click opens the Power BI context menu.
+- Keyboard: Tab to the chart, arrows between points, Enter to select, Esc to clear.
+
+## Good to know
+
+- Order by value follows the values, so it changes with filters. Data order and name do not.
+- Conditional formatting (fx) on markers works without a Series field; with Series, Power BI does not evaluate
+  the rule per point, as with native charts that have a Legend field.
+- More than 4 or 5 shapes on one radar is hard to read: use small multiples or one radar per series.
+
+## Free and Pro
+
+Free is a complete, correct radar chart: up to 3 series on a fixed scale from zero, gaps for missing values,
+measures as axes, notes on the data, templates, curved lines, marker shapes, filtering, highlight, bookmarks,
+drilldown, high contrast and 12 languages. While editing without a licence, Pro features are drawn working on
+your own data under a Pro preview watermark; reading view shows the free result.
+
+## Privacy
+
+No network requests and no privileges: everything is computed inside your report.
+
+Questions: <https://github.com/tinocallarisa-web/radar-chart/discussions> · support@tcviz.com
