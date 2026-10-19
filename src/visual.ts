@@ -482,6 +482,16 @@ export class Visual implements IVisual {
             return { name: c.source.displayName, value: n !== null ? this.formatter(this.formatOf(c), undefined)(n) : (v === null || v === undefined ? "" : String(v)) };
         });
 
+        // Color de la regla fx (formato condicional) de un punto. Power BI lo deja en la columna de valores de la
+        // serie o en las columnas de categoría según la forma de los datos: se mira en todas.
+        const ruleAt = (cols: (DataViewValueColumn | DataViewCategoryColumn | undefined)[], i: number): string | null => {
+            for (const c of cols) {
+                const f = (c?.objects?.[i]?.["markers"]?.["fill"] as any)?.solid?.color;
+                if (f) return f;
+            }
+            return null;
+        };
+
         // Series: una por grupo de Serie o, sin Serie, una por medida de Valores (como el radar de Microsoft).
         interface Src { name: string; value: DataViewValueColumn; cols: DataViewValueColumn[]; group: powerbi.DataViewValueColumnGroup | null; }
         const srcs: Src[] = [];
@@ -556,7 +566,7 @@ export class Visual implements IVisual {
                     if (groupCol) b = b.withCategory(groupCol, i);
                     if (panelCol) b = b.withCategory(panelCol, i);
                     b = src.group ? b.withSeries(vcols, src.group) : b.withMeasure(src.value.source.queryName);
-                    const rule = ((src.value.objects?.[i]?.["markers"]?.["fill"] ?? lastAxis.objects?.[i]?.["markers"]?.["fill"]) as any)?.solid?.color ?? null;
+                    const rule = ruleAt([src.value, ...axisCols, groupCol, panelCol], i);
                     if (rule) this.ruleColorsUsed = true;
                     addPt(panel, axisName, si, value, hl, target, smin, smax, noteRaw === null || noteRaw === undefined ? "" : String(noteRaw),
                         b.createSelectionId(), pro ? rule : null, tipsOf(src.cols, i));
@@ -578,11 +588,19 @@ export class Visual implements IVisual {
                         if (panelCol) b = b.withCategory(panelCol, i);
                         if (src.group) b = b.withSeries(vcols, src.group);
                         b = b.withMeasure(m.source.queryName);
+                        const rule = ruleAt([m, panelCol], i);
+                        if (rule) this.ruleColorsUsed = true;
                         addPt(panel, m.source.displayName, si, this.num(m.values[i]), m.highlights ? this.num(m.highlights[i]) : null,
-                            null, null, null, "", b.createSelectionId(), null, tipsOf(cols, i));
+                            null, null, null, "", b.createSelectionId(), pro ? rule : null, tipsOf(cols, i));
                     }
                 });
             }
+        }
+        if (DEBUG_SEL) {
+            const where = (c: any, n: string) => (c?.objects || []).some((o: any) => o?.["markers"]) ? n : "";
+            const found = [...vcols.map((c, k) => where(c, "values[" + k + "]")), ...cats.map((c, k) => where(c, "categories[" + k + "]")),
+                ...groups.map((g, k) => (g.objects?.["markers"] ? "group[" + k + "]" : ""))].filter(Boolean);
+            (this as any).diagRule = "DIAG regla fx en: " + (found.join(", ") || "ningún sitio") + " · metadata.markers=" + JSON.stringify(dv.metadata?.objects?.["markers"] ?? null).slice(0, 120);
         }
         if (panelSet.length) this.panels = panelSet;
         let axes = Array.from(axisIndex.values());
@@ -1193,6 +1211,7 @@ export class Visual implements IVisual {
             msgs.push(this.t("UI_AxesOf", "Showing {0} of {1} axes.").replace("{0}", String(this.axes.length)).replace("{1}", String(this.totalAxes)));
         const dom = this.dominantAxis(s);
         if (dom) msgs.push(this.t("UI_Dominant", "“{0}” is much larger than the other axes, so they look flat. Check the scale in Format → Scale.").replace("{0}", dom));
+        if (DEBUG_SEL && (this as any).diagRule) msgs.push((this as any).diagRule);
         const wanted = this.attemptedPro();
         if (!this.proActive && wanted.length && !this.isEditing())
             msgs.push(this.t("UI_ReadingFree", "Pro features not applied in reading view:") + " " + wanted.map(w => w.label).join(", "));
