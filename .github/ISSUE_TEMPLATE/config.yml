@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and how-to
+    url: https://github.com/tinocallarisa-web/radar-chart/discussions
+    about: Ask and share examples in Discussions
+  - name: Documentation
+    url: https://tinocallarisa-web.github.io/radar-chart/support.html
+    about: Guide, FAQ and troubleshooting
+  - name: Email
+    url: mailto:support@tcviz.com
+    about: support@tcviz.com
