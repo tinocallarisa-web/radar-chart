@@ -213,6 +213,8 @@ export class Visual implements IVisual {
     private totalSeries = 0;
     private totalAxes = 0;
     private measuresAsAxes = false;
+    /** Hay campo en Serie: Power BI no evalúa reglas fx por punto (como los nativos con Leyenda). */
+    private seriesBound = false;
     private hasTarget = false;
     private hasHighlights = false;
     private allInt = true;
@@ -464,6 +466,7 @@ export class Visual implements IVisual {
         const groupCol = pro ? cats.find(c => c.source.roles?.["axisGroup"]) : undefined;
         const panelCol = pro ? cats.find(c => c.source.roles?.["panel"]) : undefined;
         const seriesBound = !!dv.metadata?.columns?.some(c => c.roles?.["series"]);
+        this.seriesBound = seriesBound;
         const groups = vcols.grouped();
         const role = (cols: DataViewValueColumn[], r: string) => cols.find(c => c.source.roles?.[r]);
         const reversedSet = new Set(s.reversed.split(",").map(x => x.trim().toLowerCase()).filter(Boolean));
@@ -1872,7 +1875,9 @@ export class Visual implements IVisual {
             card("markers", "Markers", [
                 tog("markers", "show", "Show", s.markers),
                 num("markers", "size", "Size", s.markerSize),
-                col("markers", "fill", "Marker color (Pro rules)", s.markerColor, true),
+                // Con Serie, Power BI no entrega las reglas por punto (probado en Desktop el 19-10-2026): sin botón fx,
+                // igual que los gráficos nativos cuando hay un campo en Leyenda.
+                col("markers", "fill", "Marker color (Pro rules)", s.markerColor, !this.seriesBound),
             ]),
             card("labels", "Data labels", [
                 tog("labels", "show", "Show", s.labels),
