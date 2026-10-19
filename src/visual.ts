@@ -1017,6 +1017,8 @@ export class Visual implements IVisual {
 
         // Marcadores, etiquetas de datos, brecha al objetivo y anotaciones
         const marks = this.el("g", { class: "tcrd-marks" }, g);
+        // Diferencias al objetivo: una capa por serie; paintSelection enseña la de la serie seleccionada.
+        const gaps = this.el("g", { class: "tcrd-gaps", "pointer-events": "none" }, g);
         const r = clamp(s.markerSize, 1, 10);
         const lf = clamp(s.labelFont, 6, 24);
         const nf = clamp(s.noteFont, 6, 20);
@@ -1041,8 +1043,9 @@ export class Visual implements IVisual {
                         "font-size": lf, fill: hc.on ? hc.fg : s.labelColor, "pointer-events": "none" }, pg);
                     t.textContent = s.scaleMode === "target" ? Math.round(v) + "%" : this.pointFmt(p)(p.value ?? 0);
                 }
-                // Brecha al objetivo (Pro), de la primera serie: verde si cumple, rojo si no (al revés en ejes "menos es mejor")
-                if (si === 0 && this.hasTarget && s.showGap && !compact && p.value !== null) {
+                // Brecha al objetivo (Pro): verde si cumple, rojo si no (al revés en ejes "menos es mejor"). Con una
+                // serie se ve siempre; con varias, la de la serie seleccionada (si no, no se sabría de quién es).
+                if (this.hasTarget && s.showGap && !compact && p.value !== null) {
                     const tgt = p.target ?? this.targetOf(panel, a.key);
                     if (tgt !== null) {
                         const d = p.value - tgt;
@@ -1052,7 +1055,7 @@ export class Visual implements IVisual {
                         // Al otro lado del radio que los valores de los anillos, para no pisarlos.
                         const ox = sn * 9, oy = -c * 9;
                         const t = this.el("text", { x: tx + c * 4 + ox, y: ty + sn * 4 + oy + 3, "text-anchor": ox < -2 ? "end" : ox > 2 ? "start" : "middle",
-                            "font-size": Math.max(7, lf - 1), "font-weight": 600, fill: hc.on ? hc.fg : (good ? s.goodColor : s.badColor), "pointer-events": "none" }, pg);
+                            "font-size": Math.max(7, lf - 1), "font-weight": 600, fill: hc.on ? hc.fg : (good ? s.goodColor : s.badColor), "data-gap": si }, gaps);
                         t.textContent = (d > 0 ? "+" : d < 0 ? "−" : "±") + this.pointFmt(p)(Math.abs(d));
                     }
                 }
@@ -1488,6 +1491,10 @@ export class Visual implements IVisual {
         this.svg.querySelectorAll<SVGGElement>("g[data-series]").forEach(g => {
             const si = this.series.findIndex(x => x.key === g.getAttribute("data-series"));
             g.setAttribute("opacity", !has || seriesOn.has(si) ? "1" : "0.4");
+        });
+        const gapSi = this.series.length === 1 ? 0 : seriesOn.size === 1 ? Array.from(seriesOn)[0] : -1;
+        this.svg.querySelectorAll<SVGTextElement>("text[data-gap]").forEach(t => {
+            t.style.display = Number(t.getAttribute("data-gap")) === gapSi ? "" : "none";
         });
         const all = this.svg.querySelectorAll<SVGGElement>("g[data-pt]");
         if (all.length && !this.svg.querySelector("g[data-pt][tabindex='0']")) {
