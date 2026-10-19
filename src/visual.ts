@@ -745,8 +745,8 @@ export class Visual implements IVisual {
         let tableH = 0;
         if (s.table && this.axes.length >= 3) tableH = this.renderTable(s, vp.height);
         else this.tableEl.style.display = "none";
-        this.render(s, vp.width, Math.max(60, vp.height - tableH));
-        this.renderNote(s);
+        const noteH = this.renderNote(s) ? 16 : 0;
+        this.render(s, vp.width, Math.max(60, vp.height - tableH - noteH));
         this.renderWatermark(vp.width, vp.height);
         this.renderGuide();
         this.warnings();
@@ -1165,12 +1165,12 @@ export class Visual implements IVisual {
      * Nota pequeña en el visual: describe el dato (eje dominante, ejes que no caben) y, en lectura, las
      * funciones Pro que no se aplican. Nunca enlaza a compra ni nombra el plan como interfaz de licencias.
      */
-    private renderNote(s: Settings): void {
+    private renderNote(s: Settings): boolean {
         const msgs: string[] = [];
         if (this.totalAxes > this.axes.length)
             msgs.push(this.t("UI_AxesOf", "Showing {0} of {1} axes.").replace("{0}", String(this.axes.length)).replace("{1}", String(this.totalAxes)));
         const dom = this.dominantAxis(s);
-        if (dom) msgs.push(this.t("UI_Dominant", "“{0}” is more than 10 times larger than the other axes, so they look flat. Check the scale in Format → Scale.").replace("{0}", dom));
+        if (dom) msgs.push(this.t("UI_Dominant", "“{0}” is much larger than the other axes, so they look flat. Check the scale in Format → Scale.").replace("{0}", dom));
         const wanted = this.attemptedPro();
         if (!this.proActive && wanted.length && !this.isEditing())
             msgs.push(this.t("UI_ReadingFree", "Pro features not applied in reading view:") + " " + wanted.map(w => w.label).join(", "));
@@ -1178,17 +1178,22 @@ export class Visual implements IVisual {
         this.noteEl.textContent = msgs.join(" · ");
         const hc = this.hc();
         this.noteEl.style.color = hc.on ? hc.fg : "#83827D";
+        return msgs.length > 0;
     }
 
-    /** Con escala común, el eje cuyo máximo es más de 10 veces el de la mediana del resto. */
+    /**
+     * Con escala común: el eje que aplasta a los demás. Se avisa cuando la mitad o más de los otros ejes no
+     * llegan al 15 % del mayor, que es cuando se ven planos (p. ej. defectos en ppm junto a porcentajes).
+     */
     private dominantAxis(s: Settings): string | null {
         if (s.scaleMode !== "common" || !s.auto || this.axes.length < 3) return null;
         const maxOf = this.axes.map(a => {
             let m = 0; this.pts.forEach(p => { if (p.axis === a.key && p.value !== null) m = Math.max(m, Math.abs(p.value)); }); return { a, m };
         }).sort((x, y) => y.m - x.m);
-        const rest = maxOf.slice(1).map(x => x.m).sort((x, y) => x - y);
-        const median = rest[Math.floor(rest.length / 2)];
-        return median > 0 && maxOf[0].m > 10 * median ? maxOf[0].a.name : null;
+        const top = maxOf[0].m;
+        if (!(top > 0)) return null;
+        const planos = maxOf.slice(1).filter(x => x.m < top * 0.15).length;
+        return planos >= Math.ceil((maxOf.length - 1) / 2) ? maxOf[0].a.name : null;
     }
 
     private renderWatermark(W: number, H: number): void {
