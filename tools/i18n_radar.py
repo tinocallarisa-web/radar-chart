@@ -188,6 +188,8 @@ R = {
     "Grafico radar: {0} fa parte del piano Pro. Ottieni una licenza per attivarlo.", "Radargrafiek: {0} hoort bij het Pro-abonnement. Neem een licentie om het in te schakelen.",
     "Wykres radarowy: {0} należy do planu Pro. Uzyskaj licencję, aby to włączyć.", "レーダー チャート: {0} は Pro プランの機能です。有効にするにはライセンスを取得してください。",
     "雷达图：{0} 属于 Pro 计划。获取许可证即可启用。", "방사형 차트: {0}은(는) Pro 플랜 기능입니다. 사용하려면 라이선스를 받으세요."],
+"Fewer than 3 axes in this panel.": ["Menos de 3 ejes en este panel.", "Menos de 3 eixos neste painel.", "Moins de 3 axes dans ce panneau.", "Weniger als 3 Achsen in diesem Feld.",
+    "Meno di 3 assi in questo pannello.", "Minder dan 3 assen in dit paneel.", "Mniej niż 3 osie w tym panelu.", "このパネルの軸は 3 本未満です。", "此面板中的轴少于 3 条。", "이 패널의 축이 3개 미만입니다."],
 # asistente
 "Setup · step {0} of 3": ["Configuración · paso {0} de 3", "Configuração · etapa {0} de 3", "Configuration · étape {0} sur 3", "Einrichtung · Schritt {0} von 3", "Configurazione · passo {0} di 3",
     "Instellen · stap {0} van 3", "Konfiguracja · krok {0} z 3", "セットアップ · 手順 {0}/3", "设置 · 第 {0} 步，共 3 步", "설정 · {0}/3단계"],

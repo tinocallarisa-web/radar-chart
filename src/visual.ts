@@ -640,6 +640,14 @@ export class Visual implements IVisual {
     }
     private axisByKey(k: string): Axis | undefined { return this.axes.find(a => a.key === k); }
 
+    /** Ejes con al menos una fila en el panel (con o sin valor), en el orden general. */
+    private panelAxes(panel: string | null): Axis[] {
+        if (this.panels.length < 2) return this.axes;
+        const has = new Set<string>();
+        this.pts.forEach(p => { if (p.panel === panel) has.add(p.axis); });
+        return this.axes.filter(a => has.has(a.key));
+    }
+
     // ── Escalas ───────────────────────────────────────────────────────────────
 
     /** Valor que se dibuja: el propio o, en "% del objetivo", el porcentaje sobre el objetivo de su eje. */
@@ -768,7 +776,7 @@ export class Visual implements IVisual {
             this.subSelectable(lg, "legend", this.t("Obj_legend", "Legend"), powerbi.visuals.SubSelectionStylesType.Text);
             const fl = clamp(s.legendFont, 6, 30);
             const rowH = fl + 8;
-            const means = s.axesMean && this.series.length > 1 ? this.axesMeans(s, scales) : null;
+            const means = s.axesMean && this.series.length > 1 && this.panels.length < 2 ? this.axesMeans(s, scales) : null;
             const items = this.series.map((se, si) => ({ se, si, label: se.name + (means && means[si] !== null ? "  " + Math.round(means[si] * 100) + "%" : "") }));
             const more = this.totalSeries > this.series.length
                 ? this.t("UI_SeriesOf", "{0} of {1} series").replace("{0}", String(this.series.length)).replace("{1}", String(this.totalSeries)) : "";
@@ -852,16 +860,23 @@ export class Visual implements IVisual {
 
     private drawRadar(g: SVGGElement, panel: string | null, s: Settings, scales: Map<string, Scale>, W: number, H: number, y0: number,
         hc: { on: boolean; fg: string; bg: string; sel: string }, compact: boolean): void {
-        const n = this.axes.length;
+        // Cada panel dibuja los ejes que tienen filas en él: un eje ausente no es un vacío.
+        const axes = this.panelAxes(panel);
+        const n = axes.length;
+        if (n < 3) {
+            const t = this.el("text", { x: W / 2, y: y0 + H / 2, "text-anchor": "middle", "font-size": 12, fill: hc.on ? hc.fg : "#605E5C" }, g);
+            t.textContent = this.t("UI_PanelFewAxes", "Fewer than 3 axes in this panel.");
+            return;
+        }
         const axFont = clamp(compact ? Math.min(s.axFont, 9) : s.axFont, 6, 30);
         const showAx = s.axLabels && W > 120;
-        const groups = this.axes.some(a => a.group !== null);
+        const groups = axes.some(a => a.group !== null);
         const groupSpace = groups ? clamp(s.groupFont, 6, 24) + 10 : 0;
         // Sitio para las etiquetas: según el texto más largo, sin pasar de un cuarto del ancho.
         const auto = Math.max(4, Math.floor(Math.min(W * 0.22, 150) / (axFont * 0.56)));
         const maxChars = s.axMaxChars > 0 ? Math.round(s.axMaxChars) : auto;
         const short = (x: string) => x.length > maxChars ? x.slice(0, Math.max(1, maxChars - 1)) + "…" : x;
-        const longest = showAx ? Math.max(...this.axes.map(a => short(a.name).length)) * axFont * 0.56 : 0;
+        const longest = showAx ? Math.max(...axes.map(a => short(a.name).length)) * axFont * 0.56 : 0;
         const padX = showAx ? longest + 10 : 8, padY = showAx ? axFont * 1.6 + 8 : 8;
         const R = Math.max(10, Math.min((W - 2 * padX) / 2, (H - 2 * padY) / 2) - groupSpace);
         const cx = W / 2, cy = y0 + H / 2;
@@ -869,8 +884,8 @@ export class Visual implements IVisual {
         const at = (f: number, j: number): [number, number] => [cx + Math.cos(ang(j)) * R * f, cy + Math.sin(ang(j)) * R * f];
         const ring = (f: number) => s.gridShape === "circle"
             ? `M${cx - R * f},${cy}a${R * f},${R * f} 0 1,0 ${2 * R * f},0a${R * f},${R * f} 0 1,0 ${-2 * R * f},0Z`
-            : "M" + this.axes.map((_, j) => at(f, j).map(v => v.toFixed(1)).join(",")).join("L") + "Z";
-        const sc0 = scales.get(this.axes[0].key);
+            : "M" + axes.map((_, j) => at(f, j).map(v => v.toFixed(1)).join(",")).join("L") + "Z";
+        const sc0 = scales.get(axes[0].key);
         const perAxis = s.scaleMode === "perAxis";
 
         // Bandas (Pro): coronas por porcentaje de la escala, solo con escala común o % del objetivo
@@ -890,7 +905,7 @@ export class Visual implements IVisual {
         if (!perAxis && sc0.lo < 0 && sc0.hi > 0) {
             this.el("path", { d: ring(frac(0, sc0, false)), fill: "none", stroke: hc.on ? hc.fg : "#83827D", "stroke-width": 1.2, "stroke-dasharray": "4 3" }, grid);
         }
-        if (s.spokes) this.axes.forEach((_, j) => { const [x, y] = at(1, j); this.el("line", { x1: cx, y1: cy, x2: x, y2: y, stroke: gc, "stroke-width": 1, "stroke-opacity": hc.on ? 0.5 : 1 }, grid); });
+        if (s.spokes) axes.forEach((_, j) => { const [x, y] = at(1, j); this.el("line", { x1: cx, y1: cy, x2: x, y2: y, stroke: gc, "stroke-width": 1, "stroke-opacity": hc.on ? 0.5 : 1 }, grid); });
 
         // Valores de los anillos: en el primer radio con escala común; en cada radio con escala por eje.
         if (s.ringLabels && !compact) {
@@ -898,7 +913,7 @@ export class Visual implements IVisual {
             const lbl = this.el("g", { class: "tcrd-rings", "font-size": gf, fill: hc.on ? hc.fg : s.gridLabelColor }, grid);
             const fmtRing = (a: Axis, v: number) => s.scaleMode === "target" ? Math.round(v) + "%" : this.formatter(a.format ?? this.series[0]?.format, Math.max(Math.abs(scales.get(a.key).lo), Math.abs(scales.get(a.key).hi)))(v);
             const onAxis = (j: number, every: number) => {
-                const a = this.axes[j], sc = scales.get(a.key);
+                const a = axes[j], sc = scales.get(a.key);
                 sc.rings.forEach((v, k) => {
                     if (k % every && k !== sc.rings.length - 1) return;
                     const f = frac(v, sc, a.reversed);
@@ -908,7 +923,7 @@ export class Visual implements IVisual {
                     t.textContent = fmtRing(a, v);
                 });
             };
-            if (perAxis) { const every = n > 12 ? 99 : 1; this.axes.forEach((_, j) => onAxis(j, every)); }
+            if (perAxis) { const every = n > 12 ? 99 : 1; axes.forEach((_, j) => onAxis(j, every)); }
             else onAxis(0, 1);
         }
 
@@ -918,9 +933,9 @@ export class Visual implements IVisual {
             const gf = clamp(s.groupFont, 6, 24);
             let start = 0;
             while (start < n) {
-                const name = this.axes[start].group;
+                const name = axes[start].group;
                 let end = start;
-                while (end + 1 < n && this.axes[end + 1].group === name) end++;
+                while (end + 1 < n && axes[end + 1].group === name) end++;
                 if (name !== null) {
                     const half = Math.PI / n;
                     const a0 = ang(start) - half * 0.8, a1 = ang(end) + half * 0.8;
@@ -945,7 +960,7 @@ export class Visual implements IVisual {
             const ax = this.el("g", { class: "tcrd-axes", "font-weight": s.axBold ? 700 : 400 }, g);
             if (s.axFamily) ax.setAttribute("font-family", s.axFamily);
             this.subSelectable(ax, "axisLabels", this.t("Obj_axisLabels", "Axis labels"), powerbi.visuals.SubSelectionStylesType.Text);
-            this.axes.forEach((a, j) => {
+            axes.forEach((a, j) => {
                 const [x, y] = at(1, j);
                 const c = Math.cos(ang(j)), sn = Math.sin(ang(j));
                 const lab = this.el("g", { "data-axis": a.key, class: "tcrd-axis" }, ax);
@@ -968,7 +983,7 @@ export class Visual implements IVisual {
         const val = (p: Pt | undefined, v: number | null) => p ? this.plotValue(p, v, s) : null;
         const ptOf = (axis: string, si: number) => this.pts.get((panel ?? "") + "\u0001" + axis + "\u0001" + si);
         if (this.hasTarget) {
-            const tp = this.axes.map((a, j) => {
+            const tp = axes.map((a, j) => {
                 const t = this.targetOf(panel, a.key);
                 if (t === null) return null;
                 const v = s.scaleMode === "target" ? 100 : t;
@@ -987,7 +1002,7 @@ export class Visual implements IVisual {
         for (const si of order) {
             const se = this.series[si];
             const color = hc.on ? hc.fg : se.color;
-            const pts = this.axes.map((a, j) => { const p = ptOf(a.key, si); const v = val(p, p?.value ?? null); return v === null ? null : at(frac(v, scales.get(a.key), a.reversed), j); });
+            const pts = axes.map((a, j) => { const p = ptOf(a.key, si); const v = val(p, p?.value ?? null); return v === null ? null : at(frac(v, scales.get(a.key), a.reversed), j); });
             const sg = this.el("g", { "data-shape": se.key, class: "tcrd-shape" }, shapes);
             const complete = pts.every(p => p !== null);
             const dash = hc.on ? HC_DASH[si % HC_DASH.length] : "";
@@ -995,7 +1010,7 @@ export class Visual implements IVisual {
             this.el("path", { d: this.pathOf(pts), fill: "none", stroke: color, "stroke-width": lw, "stroke-linejoin": "round", "stroke-dasharray": dash,
                 "stroke-opacity": this.hasHighlights ? 0.35 : 1 }, sg);
             if (this.hasHighlights) {
-                const hp = this.axes.map((a, j) => { const p = ptOf(a.key, si); const v = val(p, p?.hl ?? null); return v === null ? null : at(frac(v, scales.get(a.key), a.reversed), j); });
+                const hp = axes.map((a, j) => { const p = ptOf(a.key, si); const v = val(p, p?.hl ?? null); return v === null ? null : at(frac(v, scales.get(a.key), a.reversed), j); });
                 this.el("path", { d: this.pathOf(hp), fill: hc.on ? "none" : color, "fill-opacity": hc.on ? 0 : fo, stroke: color, "stroke-width": lw + 0.5, "stroke-dasharray": dash }, sg);
             }
         }
@@ -1007,7 +1022,7 @@ export class Visual implements IVisual {
         const nf = clamp(s.noteFont, 6, 20);
         for (const si of order) {
             const se = this.series[si];
-            this.axes.forEach((a, j) => {
+            axes.forEach((a, j) => {
                 const p = ptOf(a.key, si);
                 if (!p) return;
                 const v = val(p, this.hasHighlights && p.hl !== null ? p.hl : p.value);
@@ -1116,7 +1131,7 @@ export class Visual implements IVisual {
         const thead = document.createElement("thead"); thead.appendChild(head); table.appendChild(thead);
         const tbody = document.createElement("tbody");
         for (const panel of this.panels) {
-            for (const a of this.axes) {
+            for (const a of this.panelAxes(panel)) {
                 const tr = document.createElement("tr");
                 if (s.tableBanding && !hc.on && tbody.childElementCount % 2 === 1) tr.style.background = s.tableBanding;
                 const cells: string[] = (multi ? [panel ?? ""] : []).concat([a.name + (a.reversed ? " ↓" : "")]);
