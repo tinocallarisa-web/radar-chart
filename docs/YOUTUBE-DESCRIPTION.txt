@@ -1,0 +1,97 @@
+==========================================
+TITLE (pick one)
+==========================================
+
+1. Radar chart for Power BI: a fixed scale, axes that stay put, targets
+2. Spider chart in Power BI: compare suppliers on every criterion at once
+3. Your radar chart changes its scale with every filter — here is the fix
+4. Power BI radar chart with targets, small multiples and a scale per axis
+
+(Recommended: 1 for the release video, 3 for a short.)
+
+
+==========================================
+YOUTUBE DESCRIPTION — FULL VIDEO
+==========================================
+
+A radar chart that rescales with every filter makes a 57 look like a 100. Radar & Spider Chart by TCViz compares suppliers, people or products on several criteria at once, on a scale that starts at zero and does not move, with the axes kept in place and a gap wherever a value is missing. Power BI has no built-in radar chart.
+
+Get it on Microsoft AppSource: https://marketplace.microsoft.com/en-us/product/tino_callarisa.radar-tcviz
+Documentation and FAQ: https://tinocallarisa-web.github.io/radar-chart/support.html
+
+──────────────────────────────────────────
+CHAPTERS
+──────────────────────────────────────────
+0:00 The problem: a scale that moves with every filter
+0:00 Axis, Values and Series: the first radar
+0:00 Fixed scale 1 to 5, axes that stay put, gaps for empty values
+0:00 Measures as axes: survey columns without unpivoting
+0:00 Target and the gap on every axis
+0:00 Scale per axis and "lower is better" axes
+0:00 Bands, reference ring and axis groups
+0:00 Small multiples and one radar per series
+0:00 Templates, curved lines, marker shapes and the setup guide
+0:00 Click a point, an axis or a series to filter the report
+0:00 Free and Pro
+
+(Fill in the timestamps from the final edit. Delete any chapter the video does not show.)
+
+──────────────────────────────────────────
+WHAT IT DOES
+──────────────────────────────────────────
+✅ A common scale from zero, with a minimum and maximum you can fix
+✅ Axes keep their order when you filter
+✅ Empty values drawn as a gap, never as zero
+✅ Measures as axes, no unpivoting
+✅ A note when one axis flattens the others, and when values fall outside a fixed scale
+✅ Six style templates, including an IBCS style; curved lines, marker shapes, rotation
+✅ Click to filter, highlight, bookmarks, drilldown, keyboard navigation and high contrast
+✅ The measure's number format, dynamic format strings included; twelve languages
+✅ No network requests: everything is computed inside your report
+
+──────────────────────────────────────────
+FREE AND PRO
+──────────────────────────────────────────
+FREE — a complete radar chart:
+• Up to 3 series on a fixed scale from zero
+• Gaps for empty values, measures as axes, notes on the data
+• Templates, curved lines, marker shapes, data labels, legend
+
+PRO — compare more, measure against a target:
+• 4 to 12 series
+• Target with the gap on every axis
+• Scale per axis and "lower is better" axes; % of target
+• Bands and a reference ring
+• Small multiples or one radar per series
+• Axis groups, annotations, conditional formatting (fx) on markers, a value table
+
+Turn on a Pro feature while editing without a licence and it is drawn working on your own data, under a "Pro preview" watermark.
+
+──────────────────────────────────────────
+LINKS
+──────────────────────────────────────────
+Documentation: https://tinocallarisa-web.github.io/radar-chart/support.html
+Questions: https://github.com/tinocallarisa-web/radar-chart/discussions
+All TCViz visuals: https://tcviz.com
+Support: support@tcviz.com
+
+#PowerBI #RadarChart #DataVisualization
+
+
+==========================================
+SHORT (under 60 s) — DESCRIPTION
+==========================================
+
+Your radar chart changes its scale with every filter. This one does not: fixed scale from zero, axes that stay put, gaps for empty values.
+Radar & Spider Chart by TCViz: https://marketplace.microsoft.com/en-us/product/tino_callarisa.radar-tcviz
+
+#PowerBI #RadarChart #Shorts
+
+
+==========================================
+NOTE
+==========================================
+The AppSource link works once the offer is published. Until then, publish the video as unlisted or use the
+documentation link. After uploading, paste the canonical URL (https://www.youtube.com/watch?v=…) in Partner Center
+(Offer listing → Videos), in tools/gen_docs.py (VIDEO) and in src/visual.ts (URL_VIDEO), then regenerate. Never a
+short link.
