@@ -106,7 +106,7 @@ Support: support@tcviz.com
 | Offer ID | `radar-tcviz` (the code expects `tino_callarisa.radar-tcviz.<plan>`) |
 | Categories | Comparison; Distribution (or the closest available) |
 | Industries | Manufacturing; Professional services |
-| Video | pending — paste the canonical `https://www.youtube.com/watch?v=…` URL |
+| Video | https://www.youtube.com/watch?v=WeIrnbHgZyk |
 | Support / documentation | https://tinocallarisa-web.github.io/radar-chart/support.html |
 | Privacy | https://tinocallarisa-web.github.io/radar-chart/privacy.html |
 | Terms (EULA) | https://tinocallarisa-web.github.io/radar-chart/terms.html |

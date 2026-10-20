@@ -41,4 +41,5 @@ the visual's own texts are bundled.
 Rendering events: one started/finished pair per update(); the licence repaint does not call
 update(). eslint (powerbi-visuals plugin) 0 errors.
 
+Video https://www.youtube.com/watch?v=WeIrnbHgZyk
 Support/privacy/terms: tinocallarisa-web.github.io/radar-chart/

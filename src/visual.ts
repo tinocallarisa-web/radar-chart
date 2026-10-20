@@ -54,7 +54,7 @@ function isOurPaidPlan(spIdentifier: unknown): boolean {
 /** Enlaces de la pantalla de inicio. ?ref= cuenta en la web las visitas que llegan desde el visual. */
 const URL_GUIDE = "https://tinocallarisa-web.github.io/radar-chart/support.html";
 const URL_PRODUCT = "https://tcviz.com/product/radar-chart/?ref=visual-radar";
-const URL_VIDEO = "";
+const URL_VIDEO = "https://www.youtube.com/watch?v=WeIrnbHgZyk";
 
 // ─── Ajustes ──────────────────────────────────────────────────────────────────
 
