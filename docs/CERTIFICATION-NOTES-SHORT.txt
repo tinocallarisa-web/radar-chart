@@ -27,16 +27,16 @@ While editing, a small panel lists optional fields and templates. Its buttons sa
 style.guide or style.template with persistProperties on a user click, never on selection.
 
 LINKS ON THE START SCREEN
-Guide (support page) and Product page (tcviz.com) open only on click or Enter, through
-host.launchUrl. The visual makes no request of its own; the icon is bundled.
+Guide, Product page and Video open only on click or Enter, through host.launchUrl.
+The icon is bundled.
 
 ROWS
 Categorical mapping, values grouped by Series, window of 30,000. Service: fetchMoreData,
 up to 20 segments; Desktop: first window. A warning icon says when rows were left out.
 
 PRIVACY
-privileges []. No network, no telemetry, no browser storage. No innerHTML. 12 languages;
-the visual's own texts are bundled.
+privileges []. No network, no telemetry, no browser storage. src uses no innerHTML; the
+bundle's d3-selection html() comes with onobjectutils and is never called. 12 languages.
 
 Rendering events: one started/finished pair per update(); the licence repaint does not call
 update(). eslint (powerbi-visuals plugin) 0 errors.
