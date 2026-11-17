@@ -1,5 +1,8 @@
 # AppSource Listing — Radar & Spider Chart by TCViz 1.0.0.0
 
+Description revised 17-11-2026 after App Advisor (3.5/5): BEST FOR block, plain-language glosses for jargon, Power BI fit
+stated in the second paragraph. Same package; only the Description field changes in Partner Center.
+
 Copy ready to paste into Partner Center, English only. **Editing this file does not change the offer**: every field
 is pasted by hand in Partner Center.
 
@@ -42,7 +45,14 @@ skills assessment
 ```
 A radar chart that changes its scale with every filter makes a 57 look like a 100. Two suppliers that score 3 and 4 out of 5 look like 1 and 5 when the axis starts where the data does. And an empty answer drawn as zero invents a bad score.
 
-Radar & Spider Chart by TCViz compares several profiles on several criteria at once — suppliers, employees, products, teams — on a scale that does not move. Power BI has no built-in radar chart; this one starts at zero, keeps your axes in place and draws a gap where a value is missing.
+Radar & Spider Chart by TCViz compares several profiles on several criteria at once — suppliers, employees, products, teams — on a scale that does not move. Power BI has no built-in radar chart; this one starts at zero, keeps your axes in place and draws a gap where a value is missing. It filters, drills down, keeps bookmarks and shows tooltips like any built-in visual.
+
+BEST FOR
+
+• Supplier scorecards: quality, price, delivery and service on one scale
+• Skills and competency assessments: each person against the role profile
+• Product or option comparisons on several criteria before a decision
+• Survey results by group, when each question is a column
 
 READ IT HONESTLY
 
@@ -50,15 +60,15 @@ READ IT HONESTLY
 • Axes keep their order when you filter: the order of the field (Sort by column), by name or by value
 • Empty values drawn as a gap in the outline, never as zero; negative values with the zero ring marked
 • A note names the axis that flattens the others, and counts values outside a fixed scale
-• Measures as axes: survey data in columns works without unpivoting
+• Measures as axes: when each criterion is its own column, as in most survey exports, use the columns as they are, without reshaping the table into rows
 
 PRO
 
 • 4 to 12 series (the free version draws 3)
 • A target per axis, drawn dashed, with the gap on every axis in green or red
-• A scale per axis, from the data or from minimum and maximum measures, each axis labelling its own rings
+• A scale per axis, from the data or from minimum and maximum measures, and each axis labels its own rings
 • "Lower is better" axes, reversed and marked, and a % of target scale
-• Bands, a reference ring, small multiples or one radar per series on a shared scale
+• Bands, a reference ring, small multiples (a grid of small radars, one per category) or one radar per series on a shared scale
 • Axis groups drawn as named arcs, annotations from a text measure, a value table and the mean of the axes
 • Marker colour with conditional formatting (fx) rules
 
@@ -71,8 +81,8 @@ WORKS LIKE A NATIVE VISUAL
 • Click a point, an axis or a series to filter the page; Ctrl+click for several; highlight from other visuals; bookmarks restore the selection
 • Drilldown on a hierarchy, Power BI context menu, standard and report tooltips
 • Keyboard navigation, screen-reader descriptions and high contrast; marker shapes can differ per series
-• The number format of each measure, dynamic format strings included, and the report language; Format pane and texts in 12 languages
-• Six style templates, including an IBCS style; curved lines, rotation, grid as polygon or circle; format on the canvas; a setup guide and a start screen
+• The number format of each measure, dynamic format strings included, so labels match the rest of your report; the report language; Format pane and texts in 12 languages
+• Six style templates, including an IBCS style (the international standard for business charts); curved lines, rotation, grid as polygon or circle; format on the canvas; a setup guide and a start screen
 
 PRIVACY
 
