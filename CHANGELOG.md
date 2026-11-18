@@ -2,6 +2,15 @@
 
 All notable changes to Radar & Spider Chart by TCViz. Power BI four-part version numbers.
 
+## 1.0.1.0 — 2026-11-18
+
+- Measures as axes with a field in Series: one shape per series and the legend, as with an Axis field (it drew a single shape).
+- Dynamic format strings per value: data labels, the value table, the tooltip and the ring values use the format of each value.
+- New Accessibility card in the Format pane: high contrast automatic or on, focus colour and width, minimum text size, and line patterns per series to tell series apart without colour.
+- Marker colour: a fixed colour is stored once for the whole visual, and Reset to default on each card clears it; the conditional formatting (fx) rules work as before.
+- Right-click on a point that groups several rows opens the context menu for all of them.
+- The "Pro preview" watermark is the one shared by all TCViz visuals.
+
 ## 1.0.0.0 — 2026-10-19
 
 - First release: one spoke per axis, a common scale from zero with a fixable minimum and maximum, axes that keep their order when you filter, and empty values drawn as gaps.

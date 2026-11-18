@@ -1,4 +1,4 @@
-# Radar & Spider Chart by TCViz — Tips & Hints (1.0.0.0)
+# Radar & Spider Chart by TCViz — Tips & Hints (1.0.1.0)
 
 A radar (spider) chart that reads honestly: a common scale from zero that does not move when you filter, axes
 that stay in place, and gaps where values are missing. This page is the short version of everything worth knowing.
@@ -17,7 +17,7 @@ evaluations per supplier and criterion are added up. Set it to Average.
 
 | Well | Limit | What it does |
 |---|---|---|
-| Axis | 3 to 40 axes | One spoke per value; a hierarchy gives drilldown. Without Axis, each measure is an axis. |
+| Axis | 3 to 40 axes | One spoke per value; a hierarchy gives drilldown. Without Axis, each measure is an axis (Series still gives one shape per value). |
 | Values | up to 40 measures | The score. With Axis and no Series, each measure is a series. |
 | Series (legend) | 1 field; Free 3, Pro 12 | One shape per value; the legend says "3 of N series". |
 | Target (Pro) | 1 | Required level per axis: dashed shape and the gap per axis. |
@@ -48,6 +48,8 @@ evaluations per supplier and criterion are added up. Set it to Average.
 - Axis order — data order (respects Sort by column), name, or value of the first series.
 - Target, Bands, Reference ring, Axis groups, Annotations, Center (mean of the axes), Legend, Value table,
   Small multiples (one radar per series), Background.
+- Accessibility — high contrast automatic or on, focus colour and width, minimum text size, line patterns per
+  series to tell series apart without colour.
 
 ## Pro
 
@@ -72,6 +74,8 @@ evaluations per supplier and criterion are added up. Set it to Average.
 - Conditional formatting (fx) on markers works without a Series field; with Series, Power BI does not evaluate
   the rule per point, as with native charts that have a Legend field.
 - More than 4 or 5 shapes on one radar is hard to read: use small multiples or one radar per series.
+- Dynamic format strings: each value keeps its own format in data labels, the value table, the tooltip and the
+  ring values.
 
 ## Free and Pro
 

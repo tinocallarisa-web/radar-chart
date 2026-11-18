@@ -1,4 +1,6 @@
-# AppSource Listing — Radar & Spider Chart by TCViz 1.0.0.0
+# AppSource Listing — Radar & Spider Chart by TCViz 1.0.1.0
+
+1.0.1.0 (18-11-2026): only the WHAT'S NEW IN 1.0.1 block is new in the Description; the rest is unchanged.
 
 Description revised 17-11-2026 after App Advisor (3.5/5): BEST FOR block, plain-language glosses for jargon, Power BI fit
 stated in the second paragraph. Same package; only the Description field changes in Partner Center.
@@ -93,6 +95,9 @@ GETTING STARTED
 1. Axis: the criteria — quality, price, delivery.
 2. Values: the score, set to Average.
 3. Series (legend): what you compare — supplier, employee, product.
+
+WHAT'S NEW IN 1.0.1
+Dynamic format strings per value: labels, the value table, tooltips and ring values each use their own format. A new Accessibility card: high contrast on demand, focus colour and width, a minimum text size and line patterns per series. Measures as axes now draw one shape per series.
 
 Documentation, how to read a radar chart and FAQ: https://tinocallarisa-web.github.io/radar-chart/support.html
 Questions: https://github.com/tinocallarisa-web/radar-chart/discussions

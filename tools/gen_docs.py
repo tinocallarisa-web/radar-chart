@@ -14,7 +14,7 @@ NAME = "Radar & Spider Chart by TCViz"
 BASE = "https://tinocallarisa-web.github.io/radar-chart/"
 REPO = "https://github.com/tinocallarisa-web/radar-chart"
 VERSION = json.load(io.open(os.path.join(ROOT, "pbiviz.json"), encoding="utf-8"))["visual"]["version"]
-FECHA = "19 October 2026"
+FECHA = "18 November 2026"
 VIDEO = "https://www.youtube.com/watch?v=WeIrnbHgZyk"
 
 plantilla = io.open(os.path.join(WC, "privacy.html"), encoding="utf-8").read()
@@ -113,6 +113,7 @@ FORMAT = [
     ("Legend", "Show; position top, bottom or right; text size and colour."),
     ("Value table", "Show (Pro), below the chart, up to 35 % of the height with its own scroll: value per axis and series, target and gap; text size and colour; header background and text colour; alternate row colour."),
     ("Small multiples", "One radar per series (Pro); columns (0 = automatic); space between panels; title size, colour, bold and alignment; panel background and border."),
+    ("Accessibility", "High contrast automatic (the Windows setting) or on; focus colour and width for keyboard navigation; minimum text size for every text in the chart; line patterns per series, so series can be told apart without colour."),
     ("Background", "Colour of the whole visual."),
 ]
 
@@ -159,6 +160,7 @@ FAQ = [
      "Microsoft; restart Power BI Desktop after the licence is assigned. See <a href=\"https://tcviz.com/licensing.html\">tcviz.com/licensing</a>.</p>"),
     ("How are numbers formatted?",
      "<p>With the number format of each measure from the model, <strong>dynamic format strings</strong> included, in the report's language. "
+     "With a dynamic format string each value keeps its own format in data labels, the value table, the tooltip and the ring values. "
      "Averages that are not whole numbers show up to two decimals when the format has none.</p>"),
     ("Is my data sent anywhere?",
      "<p>No. The visual makes no network requests and stores nothing outside your report. The links on the start screen open only when you click "
@@ -204,7 +206,7 @@ rules and a value table.</p>
 <li>Add <strong>{html.escape(NAME)}</strong> to the page. With no fields it shows a start screen with these steps.</li>
 <li>Drag the criteria to <strong>Axis</strong> — quality, price, delivery — and the score to <strong>Values</strong>, set to Average.</li>
 <li>Drag what you compare to <strong>Series (legend)</strong> — supplier, employee, product.</li>
-<li>Or, with survey data in columns, leave Axis empty and drag each question to Values: each measure becomes an axis.</li>
+<li>Or, with survey data in columns, leave Axis empty and drag each question to Values: each measure becomes an axis. A field in Series still draws one shape per value.</li>
 <li>The setup guide in the corner lists the optional fields and the style templates. Pro: add a <strong>Target</strong> or <strong>Small multiples</strong>.</li>
 </ol>
 </div>
@@ -262,7 +264,8 @@ Reading view shows the free result. Pro is sold per user on Microsoft AppSource.
 <ul>
 <li>Keyboard: Tab into the visual, arrows move between points, Home/End jump to the first/last, Enter or Space selects, Esc clears, the context-menu key opens the menu. The tooltip opens on the focused point.</li>
 <li>Each point has a description for screen readers with its series, axis and value; the chart describes its axes and series.</li>
-<li>High contrast: the visual uses the colours of the Windows contrast theme and tells series apart by line pattern; marker shapes can also differ per series.</li>
+<li>High contrast: the visual uses the colours of the Windows contrast theme and tells series apart by line pattern; marker shapes can also differ per series. Format → Accessibility can turn high contrast on without the Windows setting.</li>
+<li>Format → Accessibility: focus colour and width, a minimum text size for the whole chart, and line patterns per series in any theme, so series can be told apart without colour.</li>
 <li>The layout adapts to the size of the visual: labels wrap or shorten, the legend gives way, ring values and labels are dropped in small panels, and the start screen has three layouts.</li>
 </ul>
 </div>
