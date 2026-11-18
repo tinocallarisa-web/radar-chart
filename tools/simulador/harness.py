@@ -188,7 +188,7 @@ async def main():
         sm = dv_medidas_serie_categoria(4)
         sm["metadata"]["objects"] = {"style": {"template": "aurora"}}
         await shot(b, "drop_pro", "51_aurora_serie_sin_eje", sm)
-        for old, new in [("classic", "ledger"), ("ibcs", "ledger"), ("compact", "clean")]:
+        for old, new in [("classic", "ledger"), ("ibcs", "editorial"), ("compact", "clean")]:
             await shot(b, "drop_pro", f"52_guardado_{old}_se_lee_{new}", dv_con_eje(n_sup=3, objects={"style": {"template": old, "guide": False}}))
         # Un ajuste puesto a mano gana al estilo; alto contraste gana a todo.
         await shot(b, "drop_pro", "53_boardroom_rejilla_a_mano", dv_con_eje(objects={"style": {"template": "boardroom", "guide": False}, "grid": {"color": {"solid": {"color": "#FF0000"}}}}))

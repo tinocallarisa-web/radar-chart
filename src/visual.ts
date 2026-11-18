@@ -137,7 +137,7 @@ for (const k of STYLES) {
  * Plantillas de la 1.0.0 (ya no se ofrecen). Un informe guardado con una de ellas se lee como el estilo más parecido,
  * sin tocar lo guardado: classic (rejilla circular, sobria) → ledger; minimal (sin adornos, mucho blanco) → editorial;
  * contrast (trazo grueso, texto oscuro) → signal; compact (solo letra pequeña, colores del tema) → clean;
- * ibcs (grises sobrios) → ledger. Los trazos discontinuos de "ibcs" dependen ahora solo de
+ * ibcs (blanco y grises con un acento) → editorial, igual que en el Marimekko. Los trazos discontinuos de "ibcs" dependen ahora solo de
  * Accessibility → Line patterns per series.
  */
 const LEGACY_TEMPLATES: Record<string, string> = { classic: "ledger", minimal: "editorial", contrast: "signal", compact: "clean", ibcs: "editorial" };
