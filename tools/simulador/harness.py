@@ -53,8 +53,10 @@ window.__dv = function(spec){
  let vals = cat.values;
  const groups = spec.groups;
  if (groups) {
-   vals = []; groups.forEach(g => g.values.forEach(c => { c.source.groupName = g.name; vals.push(c); }));
+   // Como Desktop (DIAG 18-11): cada grupo con su identity, y values.source = la columna de Serie.
+   vals = []; groups.forEach(g => { g.identity = g.identity || { key: 'grp:' + g.name }; g.values.forEach(c => { c.source.groupName = g.name; vals.push(c); }); });
    vals.grouped = () => groups;
+   if (spec.seriesSource) vals.source = spec.seriesSource;
  } else { vals.grouped = () => [{ values: vals }]; }
  cat.values = vals;
  return spec;

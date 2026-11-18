@@ -498,7 +498,10 @@ export class Visual implements IVisual {
         const axisCols = cats.filter(c => c.source.roles?.["axis"]);
         const groupCol = pro ? cats.find(c => c.source.roles?.["axisGroup"]) : undefined;
         const panelCol = pro ? cats.find(c => c.source.roles?.["panel"]) : undefined;
-        const seriesBound = !!dv.metadata?.columns?.some(c => c.roles?.["series"]);
+        // Serie: en metadata.columns o, con los valores agrupados (sin Eje, en Desktop), solo en values.source y en los
+        // grupos. Comprobado con Tino el 18-11-2026: DIAG cats=[] grupos=6 series=1 con Supplier en Serie.
+        const groupedBySeries = !!(vcols as any).source?.roles?.["series"] || vcols.grouped().filter(g => g.identity).length > 1;
+        const seriesBound = !!dv.metadata?.columns?.some(c => c.roles?.["series"]) || groupedBySeries;
         this.seriesBound = seriesBound;
         const groups = vcols.grouped();
         const role = (cols: DataViewValueColumn[], r: string) => cols.find(c => c.source.roles?.[r]);
