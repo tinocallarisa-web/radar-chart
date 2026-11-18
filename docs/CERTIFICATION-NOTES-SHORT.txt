@@ -1,12 +1,15 @@
 Radar & Spider Chart by TCViz 1.0.1.0 - GUID radarChartTCVizFAD508C05F394C63981E2CF54AD8BE8B
 
+WHY 1.0.1.0: dynamic format strings per value, Format > Accessibility card, style
+templates replaced by the TCViz collection styles, series shown when measures are axes.
+
 SOURCE CODE
 github.com/tinocallarisa-web/radar-chart, branch "certification". Public, no credentials.
 
 TESTING THE PREMIUM FEATURES - NO KEY NEEDED
 Pro is granted by the AppSource plan through IVisualLicenseManager; no activation key exists.
-Import this .pbiviz, open a report in EDIT mode without a licence: each Pro capability is
-drawn WORKING under a "Pro preview" watermark naming it; Power BI shows its licence notice.
+In EDIT mode without a licence each Pro capability is drawn WORKING under a "Pro preview"
+watermark naming it; Power BI shows its licence notice.
 Reading view shows the free result. Sign in to Power BI Desktop: with no licence info Pro
 stays off, no watermark.
 
@@ -24,22 +27,20 @@ or Format > Accessibility: High contrast On, Line patterns per series, Minimum t
 6. Format mode: click a shape, the grid, an axis label, the legend or the background.
 
 SETUP GUIDE
-While editing, a panel lists optional fields and templates; its buttons call
+While editing, a panel lists optional fields and styles; its buttons call
 persistProperties (style.guide, style.template) on a user click, never on selection.
 
-START SCREEN LINKS
-Guide, Product page and Video open only on click or Enter, via host.launchUrl. Icon bundled.
+START SCREEN: links open only on click or Enter, via host.launchUrl.
 
 ROWS
-Categorical mapping, values grouped by Series, window of 30,000. Service: fetchMoreData,
-up to 20 segments; Desktop: first window. A warning icon says when rows were left out.
+Categorical, grouped by Series, 30,000-row window; service: fetchMoreData up to 20
+segments, Desktop: first window. A warning icon says when rows were left out.
 
 PRIVACY
-privileges []. No network, telemetry or browser storage. src uses no innerHTML; the
-bundle's d3-selection html() comes with onobjectutils and is never called. 12 languages.
+privileges []. No network, telemetry or storage. No innerHTML in src (d3-selection html()
+in the bundle comes with onobjectutils, never called). 12 languages.
 
-Rendering events: one started/finished pair per update(); the licence repaint does not
-call update(). eslint (powerbi-visuals plugin): 0 errors.
+One render started/finished pair per update(); repaints never call update(). eslint 0.
 
 Video https://www.youtube.com/watch?v=WeIrnbHgZyk
 Support/privacy/terms: tinocallarisa-web.github.io/radar-chart/
