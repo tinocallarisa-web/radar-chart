@@ -12,6 +12,7 @@ import { Scale, frac, ringScale } from "./scale";
 import { STRINGS } from "./strings";
 import { LANDING_ICON } from "./landingIcon";
 import { createProWatermark, renderProWatermark } from "./comun/watermark";
+import { styleSeriesColor } from "./comun/paleta";
 
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
@@ -622,7 +623,7 @@ export class Visual implements IVisual {
                 : src.group
                     ? (this.host.createSelectionIdBuilder().withSeries(vcols, src.group).createSelectionId() as any).getSelector?.()
                     : { metadata: src.value.source.queryName } as any;
-            const color = own || (look ? look.series[k % look.series.length] : this.host.colorPalette.getColor(src.name || "values").value);
+            const color = own || (look ? styleSeriesColor(look.series, k) : this.host.colorPalette.getColor(src.name || "values").value);
             const format = (src.rows ? dyn(src.value, r0) : firstDyn(src.value)) ?? this.formatOf(src.value);
             return { key: "s" + k, name: src.name, color, format, selector };
         });
