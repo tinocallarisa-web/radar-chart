@@ -202,6 +202,12 @@ function readSettings(objects: Objects): Settings {
     };
 }
 
+/** Diferencia con signo: si el formato la deja en cero ("0", "0.0"), sin signo; nunca "+0" ni "−0". */
+function signedFmt(d: number, f: (v: number) => string): string {
+    const txt = f(Math.abs(d));
+    return (txt === f(0) ? "" : d > 0 ? "+" : d < 0 ? "−" : "") + txt;
+}
+
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(v) ? v : lo));
 
 // ─── Modelo ───────────────────────────────────────────────────────────────────
@@ -964,16 +970,32 @@ export class Visual implements IVisual {
                 if (more) { const t = this.el("text", { x: W - colW, y: y + fl * 0.35, "font-size": Math.max(this.minText, 7, fl - 1), fill: hc.on ? hc.fg : this.inkDim() }, lg); t.textContent = more; }
                 right += colW + 6;
             } else {
-                const y = s.legendPos === "bottom" ? H - rowH / 2 - 2 : rowH / 2 + 2;
-                let x = 8;
+                // Filas que caben sin quitarle más de un tercio al radar; lo que no cabe se cuenta con "+N", nunca en silencio.
+                const maxRows = Math.max(1, Math.min(3, Math.floor(H / 3 / rowH)));
+                const rows: { it: typeof items[0]; x: number }[][] = [[]];
+                let x = 8, shown = 0;
                 for (const it of items) {
                     const w = fl * 1.6 + 10 + Math.min(170, it.label.length * fl * 0.58);
-                    if (x + w > W - 8) break;
-                    this.legendItem(lg, it.se, it.si, it.label, x, y, fl, s, hc);
-                    x += w + 10;
+                    if (x + w > W - 8 && rows[rows.length - 1].length) {
+                        if (rows.length >= maxRows) break;
+                        rows.push([]); x = 8;
+                    }
+                    rows[rows.length - 1].push({ it, x });
+                    x += w + 10; shown++;
                 }
-                if (more && x < W - 60) { const t = this.el("text", { x, y: y + fl * 0.35, "font-size": Math.max(this.minText, 7, fl - 1), fill: hc.on ? hc.fg : this.inkDim() }, lg); t.textContent = more; }
-                if (s.legendPos === "bottom") bottom += rowH + 4; else top += rowH + 4;
+                const hidden = items.length - shown;
+                const extra = [hidden > 0 ? "+" + hidden : "", more].filter(Boolean).join(" · ");
+                const nr = rows.length;
+                rows.forEach((row, r) => {
+                    const y = s.legendPos === "bottom" ? H - (nr - r) * rowH + rowH / 2 - 2 : r * rowH + rowH / 2 + 2;
+                    row.forEach(({ it, x: ix }) => this.legendItem(lg, it.se, it.si, it.label, ix, y, fl, s, hc));
+                    if (r === nr - 1 && extra) {
+                        const ex = row.length ? Math.min(W - 40, x) : 8;
+                        const t = this.el("text", { x: ex, y: y + fl * 0.35, "font-size": Math.max(this.minText, 7, fl - 1), fill: hc.on ? hc.fg : this.inkDim() }, lg);
+                        t.textContent = extra;
+                    }
+                });
+                if (s.legendPos === "bottom") bottom += nr * rowH + 4; else top += nr * rowH + 4;
             }
         }
 
@@ -1112,11 +1134,15 @@ export class Visual implements IVisual {
             const fmtRing = (a: Axis, v: number) => s.scaleMode === "target" ? Math.round(v) + "%" : this.formatter(this.ringFormat(a), Math.max(Math.abs(scales.get(a.key).lo), Math.abs(scales.get(a.key).hi)))(v);
             const onAxis = (j: number, every: number) => {
                 const a = axes[j], sc = scales.get(a.key);
+                let px = -1e9, py = -1e9;
                 sc.rings.forEach((v, k) => {
                     if (k % every && k !== sc.rings.length - 1) return;
                     const f = frac(v, sc, a.reversed);
                     if (f < 0.01) return;   // el centro no se rotula (en un eje invertido es el máximo)
                     const [x, y] = at(f, j);
+                    // En radares pequeños los anillos quedan juntos: se salta el valor que pisaría al anterior.
+                    if (Math.hypot(x - px, y - py) < gf * 1.3) return;
+                    px = x; py = y;
                     const t = this.el("text", { x: x + 3, y: y - 2, "text-anchor": "start" }, lbl);
                     t.textContent = fmtRing(a, v);
                 });
@@ -1267,7 +1293,7 @@ export class Visual implements IVisual {
                         const ox = sn * 9, oy = -c * 9;
                         const t = this.el("text", { x: tx + c * 4 + ox, y: ty + sn * 4 + oy + 3, "text-anchor": ox < -2 ? "end" : ox > 2 ? "start" : "middle",
                             "font-size": Math.max(this.minText, 7, lf - 1), "font-weight": 600, fill: hc.on ? hc.fg : (good ? s.goodColor : s.badColor), "data-gap": si }, gaps);
-                        t.textContent = (d > 0 ? "+" : d < 0 ? "−" : "±") + this.pointFmt(p)(Math.abs(d));
+                        t.textContent = signedFmt(d, this.pointFmt(p));
                     }
                 }
                 // Anotación (Pro): el texto de la medida Nota junto al punto
@@ -1389,7 +1415,7 @@ export class Visual implements IVisual {
                     const f = p0 ? this.pointFmt(p0) : this.seriesFmt(0);
                     cells.push(t !== null ? f(t) : "");
                     const d = p0 && p0.value !== null && t !== null ? p0.value - t : null;
-                    cells.push(d === null ? "" : (d > 0 ? "+" : d < 0 ? "−" : "") + f(Math.abs(d)));
+                    cells.push(d === null ? "" : signedFmt(d, f));
                 }
                 cells.forEach((c, i) => { const td = document.createElement("td"); td.textContent = c; if (i >= firstNum) td.className = "num"; tr.appendChild(td); });
                 tbody.appendChild(tr);
@@ -1739,7 +1765,7 @@ export class Visual implements IVisual {
             items.push({ displayName: this.t("UI_Target", "Target"), value: f(tgt) });
             if (p.value !== null) {
                 const d = p.value - tgt;
-                items.push({ displayName: this.t("UI_Gap", "Gap"), value: (d > 0 ? "+" : d < 0 ? "−" : "") + f(Math.abs(d)) });
+                items.push({ displayName: this.t("UI_Gap", "Gap"), value: signedFmt(d, f) });
                 if (s.scaleMode === "target") items.push({ displayName: this.t("UI_PctTarget", "% of target"), value: Math.round(p.value / tgt * 100) + "%" });
             }
         }
