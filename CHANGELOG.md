@@ -10,7 +10,7 @@ All notable changes to Radar & Spider Chart by TCViz. Power BI four-part version
 - Marker colour: a fixed colour is stored once for the whole visual, and Reset to default on each card clears it; the conditional formatting (fx) rules work as before.
 - Right-click on a point that groups several rows opens the context menu for all of them.
 - The "Pro preview" watermark is the one shared by all TCViz visuals.
-- Style templates: Report theme and the six TCViz collection styles (Boardroom, Ledger, Editorial, Signal, Aurora, Terrace), the same as in Treemap and Line Chart, all free. A report saved with a 1.0.0 template opens with the closest style (Classic and IBCS style as Ledger, Minimal as Editorial, Contrast as Signal, Compact as Report theme); dashed series lines now come only from Accessibility → Line patterns per series.
+- Style templates: Report theme and the six TCViz collection styles (Boardroom, Ledger, Editorial, Signal, Aurora, Terrace), the same as in Treemap and Line Chart, all free. A report saved with a 1.0.0 template opens with the closest style (Classic as Ledger, Minimal and IBCS style as Editorial, Contrast as Signal, Compact as Report theme); dashed series lines now come only from Accessibility → Line patterns per series.
 
 ## 1.0.0.0 — 2026-10-19
 

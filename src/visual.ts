@@ -140,7 +140,7 @@ for (const k of STYLES) {
  * ibcs (grises sobrios) → ledger. Los trazos discontinuos de "ibcs" dependen ahora solo de
  * Accessibility → Line patterns per series.
  */
-const LEGACY_TEMPLATES: Record<string, string> = { classic: "ledger", minimal: "editorial", contrast: "signal", compact: "clean", ibcs: "ledger" };
+const LEGACY_TEMPLATES: Record<string, string> = { classic: "ledger", minimal: "editorial", contrast: "signal", compact: "clean", ibcs: "editorial" };
 function templateOf(raw: unknown): string {
     const v = String(raw ?? "") || "clean";
     const m = LEGACY_TEMPLATES[v] ?? v;
