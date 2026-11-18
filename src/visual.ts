@@ -500,7 +500,8 @@ export class Visual implements IVisual {
         const panelCol = pro ? cats.find(c => c.source.roles?.["panel"]) : undefined;
         // Serie: en metadata.columns o, con los valores agrupados (sin Eje, en Desktop), solo en values.source y en los
         // grupos. Comprobado con Tino el 18-11-2026: DIAG cats=[] grupos=6 series=1 con Supplier en Serie.
-        const groupedBySeries = !!(vcols as any).source?.roles?.["series"] || vcols.grouped().filter(g => g.identity).length > 1;
+        // Solo un campo en Serie hace que Power BI agrupe los valores: más de un grupo ya es Serie.
+        const groupedBySeries = !!(vcols as any).source?.roles?.["series"] || vcols.grouped().length > 1;
         const seriesBound = !!dv.metadata?.columns?.some(c => c.roles?.["series"]) || groupedBySeries;
         this.seriesBound = seriesBound;
         const groups = vcols.grouped();
@@ -681,7 +682,10 @@ export class Visual implements IVisual {
             const where = (c: any, n: string) => (c?.objects || []).some((o: any) => o?.["markers"]) ? n : "";
             const found = [...vcols.map((c, k) => where(c, "values[" + k + "]")), ...cats.map((c, k) => where(c, "categories[" + k + "]")),
                 ...groups.map((g, k) => (g.objects?.["markers"] ? "group[" + k + "]" : ""))].filter(Boolean);
-            const shape = "cats=[" + cats.map(c => Object.keys(c.source.roles || {}).join("+")).join(",") + "] grupos=" + groups.length + " series=" + srcs.length;
+            const g0: any = groups[0] || {};
+            const shape = "cats=[" + cats.map(c => Object.keys(c.source.roles || {}).join("+")).join(",") + "] grupos=" + groups.length + " series=" + srcs.length
+                + " bound=" + seriesBound + " src=" + JSON.stringify((vcols as any).source?.roles ?? null) + " g0=" + Object.keys(g0).join("/")
+                + " meta=" + (dv.metadata?.columns || []).map(c => Object.keys(c.roles || {}).join("+")).join(",");
             (this as any).diagRule = "DIAG " + shape + " · regla fx en: " + (found.join(", ") || "ningún sitio") + " · metadata.markers=" + JSON.stringify(dv.metadata?.objects?.["markers"] ?? null).slice(0, 120);
         }
         if (pro && s.smBySeries && seriesBound && !panelCol && this.series.length > 1) {
