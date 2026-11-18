@@ -4,7 +4,7 @@
     "displayName": "Radar & Spider Chart by TCViz",
     "guid": "radarChartTCVizFAD508C05F394C63981E2CF54AD8BE8B",
     "visualClassName": "Visual",
-    "version": "1.0.0.0",
+    "version": "1.0.1.0",
     "description": "A radar (spider) chart that reads honestly: a fixed scale from zero, axes that stay in place, gaps for missing values. Pro adds more than 3 series, targets with the gap per axis, a scale per axis and reversed axes, bands, small multiples, axis groups, annotations and a value table.",
     "supportUrl": "https://tinocallarisa-web.github.io/radar-chart/support.html",
     "privacyTermsLink": "https://tinocallarisa-web.github.io/radar-chart/privacy.html",

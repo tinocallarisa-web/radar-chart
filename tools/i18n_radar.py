@@ -292,4 +292,15 @@ R = {
 "color rules": ["reglas de color", "regras de cor", "règles de couleur", "Farbregeln", "regole di colore", "kleurregels", "reguły kolorów", "色のルール", "颜色规则", "색 규칙"],
 "value table": ["tabla de valores", "tabela de valores", "tableau des valeurs", "Wertetabelle", "tabella dei valori", "waardetabel", "tabela wartości", "値のテーブル", "值表", "값 표"],
 "mean of the axes": ["media de los ejes", "média dos eixos", "moyenne des axes", "Mittelwert der Achsen", "media degli assi", "gemiddelde van de assen", "średnia osi", "軸の平均", "轴的平均值", "축 평균"],
+# 1.0.1: formato dinámico (F11) y tarjeta de accesibilidad (D10)
+"General": ["General", "Geral", "Général", "Allgemein", "Generale", "Algemeen", "Ogólne", "全般", "常规", "일반"],
+"Format string": ["Cadena de formato", "Cadeia de formato", "Chaîne de format", "Formatzeichenfolge", "Stringa di formato", "Notatietekenreeks", "Ciąg formatu", "書式指定文字列", "格式字符串", "서식 문자열"],
+"Accessibility": ["Accesibilidad", "Acessibilidade", "Accessibilité", "Barrierefreiheit", "Accessibilità", "Toegankelijkheid", "Ułatwienia dostępu", "アクセシビリティ", "辅助功能", "접근성"],
+"High contrast": ["Alto contraste", "Alto contraste", "Contraste élevé", "Hoher Kontrast", "Contrasto elevato", "Hoog contrast", "Wysoki kontrast", "ハイ コントラスト", "高对比度", "고대비"],
+"Automatic (Windows setting)": ["Automático (ajuste de Windows)", "Automático (configuração do Windows)", "Automatique (paramètre Windows)", "Automatisch (Windows-Einstellung)", "Automatico (impostazione di Windows)", "Automatisch (Windows-instelling)", "Automatycznie (ustawienie systemu Windows)", "自動 (Windows の設定)", "自动 (Windows 设置)", "자동(Windows 설정)"],
+"On": ["Activado", "Ativado", "Activé", "Ein", "Attivato", "Aan", "Włączone", "オン", "开", "켜기"],
+"Focus color": ["Color del foco", "Cor do foco", "Couleur du focus", "Fokusfarbe", "Colore del focus", "Focuskleur", "Kolor fokusu", "フォーカスの色", "焦点颜色", "포커스 색"],
+"Focus width": ["Grosor del foco", "Largura do foco", "Épaisseur du focus", "Fokusbreite", "Spessore del focus", "Breedte focus", "Grubość fokusu", "フォーカスの幅", "焦点宽度", "포커스 두께"],
+"Minimum text size": ["Tamaño mínimo del texto", "Tamanho mínimo do texto", "Taille de texte minimale", "Minimale Textgröße", "Dimensione minima del testo", "Minimale tekstgrootte", "Minimalny rozmiar tekstu", "最小のテキスト サイズ", "最小文本大小", "최소 텍스트 크기"],
+"Line patterns per series": ["Trazos distintos por serie", "Traços distintos por série", "Motifs de trait par série", "Linienmuster pro Reihe", "Motivi di linea per serie", "Lijnpatronen per reeks", "Wzory linii dla serii", "系列ごとの線のパターン", "每个系列的线条样式", "계열별 선 패턴"],
 }

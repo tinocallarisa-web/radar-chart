@@ -26,6 +26,10 @@ def E(*items):
 
 # (objeto, nombre, [(prop, nombre, tipo)])  tipo: bool | num | text | color | colorfx | enum:[...]
 OBJECTS = [
+    ("general", "General", [
+        # F11: el formato dinámico de la medida llega por fila en values[i].objects[r].general.formatString
+        ("formatString", "Format string", "fmt"),
+    ]),
     ("style", "Style template", [
         ("template", "Template", E(("clean", "Enum_tpl_clean", "Clean"), ("classic", "Enum_tpl_classic", "Classic"),
                                     ("minimal", "Enum_tpl_minimal", "Minimal"), ("contrast", "Enum_tpl_contrast", "Contrast"),
@@ -141,6 +145,13 @@ OBJECTS = [
         ("border", "Panel border", "bool"),
         ("borderColor", "Panel border color", "color"),
     ]),
+    ("accessibility", "Accessibility", [
+        ("highContrast", "High contrast", E(("auto", "Enum_hc_auto", "Automatic (Windows setting)"), ("on", "Enum_hc_on", "On"))),
+        ("focusColor", "Focus color", "color"),
+        ("focusWidth", "Focus width", "num"),
+        ("minTextSize", "Minimum text size", "num"),
+        ("patterns", "Line patterns per series", "bool"),
+    ]),
     ("background", "Background", [
         ("color", "Color", "color"),
     ]),
@@ -151,6 +162,7 @@ def ptype(t):
     if t == "num": return {"numeric": True}
     if t == "text": return {"text": True}
     if t in ("color", "colorfx"): return {"fill": {"solid": {"color": True}}}
+    if t == "fmt": return {"formatting": {"formatString": True}}
     return {"enumeration": t}
 
 def main():

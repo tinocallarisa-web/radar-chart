@@ -1,7 +1,7 @@
 {
   "name": "radar-tcviz",
   "description": "Radar & Spider Chart by TCViz — a radar chart custom visual for Power BI",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "TCViz",
     "email": "support@tcviz.com"

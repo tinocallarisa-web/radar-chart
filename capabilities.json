@@ -182,6 +182,21 @@
     }
   ],
   "objects": {
+    "general": {
+      "displayName": "General",
+      "displayNameKey": "Obj_general",
+      "properties": {
+        "formatString": {
+          "displayName": "Format string",
+          "displayNameKey": "Prop_general_formatString",
+          "type": {
+            "formatting": {
+              "formatString": true
+            }
+          }
+        }
+      }
+    },
     "style": {
       "displayName": "Style template",
       "displayNameKey": "Obj_style",
@@ -1031,6 +1046,62 @@
                 "color": true
               }
             }
+          }
+        }
+      }
+    },
+    "accessibility": {
+      "displayName": "Accessibility",
+      "displayNameKey": "Obj_accessibility",
+      "properties": {
+        "highContrast": {
+          "displayName": "High contrast",
+          "displayNameKey": "Prop_accessibility_highContrast",
+          "type": {
+            "enumeration": [
+              {
+                "value": "auto",
+                "displayName": "Automatic (Windows setting)",
+                "displayNameKey": "Enum_hc_auto"
+              },
+              {
+                "value": "on",
+                "displayName": "On",
+                "displayNameKey": "Enum_hc_on"
+              }
+            ]
+          }
+        },
+        "focusColor": {
+          "displayName": "Focus color",
+          "displayNameKey": "Prop_accessibility_focusColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "focusWidth": {
+          "displayName": "Focus width",
+          "displayNameKey": "Prop_accessibility_focusWidth",
+          "type": {
+            "numeric": true
+          }
+        },
+        "minTextSize": {
+          "displayName": "Minimum text size",
+          "displayNameKey": "Prop_accessibility_minTextSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "patterns": {
+          "displayName": "Line patterns per series",
+          "displayNameKey": "Prop_accessibility_patterns",
+          "type": {
+            "bool": true
           }
         }
       }

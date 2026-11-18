@@ -11,6 +11,7 @@ import {
 import { Scale, frac, ringScale } from "./scale";
 import { STRINGS } from "./strings";
 import { LANDING_ICON } from "./landingIcon";
+import { createProWatermark, renderProWatermark } from "./comun/watermark";
 
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
@@ -77,6 +78,7 @@ interface Settings {
     table: boolean; tableFont: number; tableColor: string; tableHeaderBg: string; tableHeaderColor: string; tableBanding: string;
     smBySeries: boolean; smCols: number; smGap: number; smTitleSize: number; smTitleColor: string; smTitleBold: boolean; smTitleAlign: string;
     smBackground: string; smBorder: boolean; smBorderColor: string;
+    hcMode: string; focusColor: string; focusWidth: number; minText: number; patterns: boolean;
     background: string;
 }
 
@@ -99,6 +101,7 @@ const DEFAULTS: Settings = {
     table: false, tableFont: 11, tableColor: "#3D3929", tableHeaderBg: "#F3F2F1", tableHeaderColor: "", tableBanding: "",
     smBySeries: false, smCols: 0, smGap: 8, smTitleSize: 12, smTitleColor: "#3D3929", smTitleBold: true, smTitleAlign: "left",
     smBackground: "", smBorder: false, smBorderColor: "#E1DFDD",
+    hcMode: "auto", focusColor: "#1F4E80", focusWidth: 2, minText: 8, patterns: false,
     background: "",
 };
 
@@ -167,6 +170,9 @@ function readSettings(objects: Objects): Settings {
         smTitleBold: pick("smallMultiples", "titleBold", "smTitleBold"), smTitleAlign: pick("smallMultiples", "titleAlign", "smTitleAlign"),
         smBackground: pick("smallMultiples", "background", "smBackground"), smBorder: pick("smallMultiples", "border", "smBorder"),
         smBorderColor: pick("smallMultiples", "borderColor", "smBorderColor"),
+        hcMode: pick("accessibility", "highContrast", "hcMode"), focusColor: pick("accessibility", "focusColor", "focusColor"),
+        focusWidth: pick("accessibility", "focusWidth", "focusWidth"), minText: pick("accessibility", "minTextSize", "minText"),
+        patterns: pick("accessibility", "patterns", "patterns"),
         background: pick("background", "color", "background"),
     };
 }
@@ -192,6 +198,10 @@ interface Pt {
     value: number | null; hl: number | null; target: number | null; smin: number | null; smax: number | null;
     note: string; ids: ISelectionId[]; rule: string | null;
     tips: { name: string; value: string }[];
+    /** Formato dinámico de este valor (F11: objects[i].general.formatString); si no, el del eje o la serie. */
+    fmt: string | undefined;
+    /** Identidad para el menú contextual: una sola que abarca todas las filas del punto (la API acepta una). */
+    menu: ISelectionId | undefined;
 }
 
 interface ProFeature { id: string; label: string; }
@@ -206,6 +216,10 @@ export class Visual implements IVisual {
     private landingEl: HTMLDivElement;
     private watermarkEl: HTMLDivElement;
     private noteEl: HTMLDivElement;
+    /** Formateadores por cadena de formato: el formato dinámico puede cambiar valor a valor. */
+    private fmtCache = new Map<string, (v: number) => string>();
+    /** Formato dinámico del primer valor de cada eje, para los valores de los anillos. */
+    private axisDynFmt = new Map<string, string>();
     private guideEl: HTMLDivElement;
     private selectionManager: ISelectionManager;
     private events: powerbi.extensibility.IVisualEventService;
@@ -277,10 +291,7 @@ export class Visual implements IVisual {
         this.noteEl = document.createElement("div");
         this.noteEl.className = "tcrd-note";
         this.root.appendChild(this.noteEl);
-        this.watermarkEl = document.createElement("div");
-        this.watermarkEl.className = "tcrd-watermark";
-        this.watermarkEl.setAttribute("aria-hidden", "true");
-        this.root.appendChild(this.watermarkEl);
+        this.watermarkEl = createProWatermark(this.root);
         this.guideEl = document.createElement("div");
         this.guideEl.className = "tcrd-guide";
         this.root.appendChild(this.guideEl);
@@ -434,11 +445,25 @@ export class Visual implements IVisual {
 
     /** Ajustes que se dibujan: sin Pro activo, cada función de pago vuelve a su valor gratuito. */
     private effective(): Settings {
-        if (this.proActive) return this.s;
         const s = { ...this.s };
-        s.scaleMode = "common"; s.reversed = ""; s.bands = false; s.table = false; s.axesMean = false;
-        s.refShow = false; s.smBySeries = false;
+        if (!this.proActive) {
+            s.scaleMode = "common"; s.reversed = ""; s.bands = false; s.table = false; s.axesMean = false;
+            s.refShow = false; s.smBySeries = false;
+        }
+        // Accesibilidad: ningún texto del gráfico por debajo del tamaño mínimo (el panel sigue mostrando lo escrito).
+        const m = this.minText;
+        s.labelFont = Math.max(s.labelFont, m); s.gridFont = Math.max(s.gridFont, m); s.axFont = Math.max(s.axFont, m);
+        s.groupFont = Math.max(s.groupFont, m); s.noteFont = Math.max(s.noteFont, m); s.legendFont = Math.max(s.legendFont, m);
+        s.tableFont = Math.max(s.tableFont, m); s.smTitleSize = Math.max(s.smTitleSize, m);
         return s;
+    }
+
+    /** Tamaño mínimo de texto (Accesibilidad), entre 6 y 20 px. */
+    private get minText(): number { return clamp(this.s.minText, 6, 20); }
+
+    /** Trazo de la serie: discontinuo por serie en alto contraste o con "Line patterns per series". */
+    private dashOf(si: number, hcOn: boolean): string {
+        return hcOn || this.s.patterns ? HC_DASH[si % HC_DASH.length] : "";
     }
 
     // ── Datos ─────────────────────────────────────────────────────────────────
@@ -462,7 +487,8 @@ export class Visual implements IVisual {
     private readData(dv: DataView | undefined): boolean {
         this.axes = []; this.series = []; this.panels = [null]; this.pts.clear(); this.idToPt.clear();
         this.totalSeries = 0; this.totalAxes = 0; this.hasTarget = false; this.hasHighlights = false; this.allInt = true;
-        this.ruleColorsUsed = false;
+        this.ruleColorsUsed = false; this.axisDynFmt.clear();
+        if (this.fmtCache.size > 200) this.fmtCache.clear();
         const cat = dv?.categorical;
         const vcols = cat?.values;
         if (!cat || !vcols || !vcols.length) return false;
@@ -485,11 +511,21 @@ export class Visual implements IVisual {
             return a;
         };
         const addPanel = (p: string | null) => { if (p !== null && panelSet.indexOf(p) < 0) panelSet.push(p); };
-        const fmtCol = (c: DataViewValueColumn | undefined) => c ? this.formatOf(c) : undefined;
+        // F11: con formato dinámico, Power BI deja la cadena de cada valor en objects[i].general.formatString.
+        const dyn = (c: DataViewValueColumn | undefined, i: number): string | undefined => {
+            const f = (c?.objects?.[i] as any)?.general?.formatString;
+            return typeof f === "string" && f ? f : undefined;
+        };
+        const firstDyn = (c: DataViewValueColumn | undefined): string | undefined => {
+            const objs = c?.objects;
+            if (!objs) return undefined;
+            for (const k of Object.keys(objs)) { const f = dyn(c, Number(k)); if (f) return f; }
+            return undefined;
+        };
         const tipsOf = (cols: DataViewValueColumn[], i: number) => cols.filter(c => c.source.roles?.["tooltips"]).map(c => {
             const v = c.values[i];
             const n = this.num(v);
-            return { name: c.source.displayName, value: n !== null ? this.formatter(this.formatOf(c), undefined)(n) : (v === null || v === undefined ? "" : String(v)) };
+            return { name: c.source.displayName, value: n !== null ? this.formatter(dyn(c, i) ?? this.formatOf(c))(n) : (v === null || v === undefined ? "" : String(v)) };
         });
 
         // Color de la regla fx (formato condicional) de un punto. Power BI lo deja en la columna de valores de la
@@ -503,9 +539,22 @@ export class Visual implements IVisual {
         };
 
         // Series: una por grupo de Serie o, sin Serie, una por medida de Valores (como el radar de Microsoft).
-        interface Src { name: string; value: DataViewValueColumn; cols: DataViewValueColumn[]; group: powerbi.DataViewValueColumnGroup | null; }
+        interface Src { name: string; value: DataViewValueColumn; cols: DataViewValueColumn[]; group: powerbi.DataViewValueColumnGroup | null; rows?: number[]; }
         const srcs: Src[] = [];
-        if (seriesBound) {
+        // Sin Eje y con Serie, Power BI no agrupa los valores: entrega la Serie como columna de categoría (una fila por
+        // serie, y por panel si lo hay) y una sola medida por columna. Cada fila es entonces una forma.
+        const seriesCatCol = !axisCols.length ? cats.find(c => c.source.roles?.["series"]) : undefined;
+        if (seriesCatCol) {
+            const byName = new Map<string, Src>();
+            const vals = groups[0].values;
+            const v0 = role(vals, "values");
+            for (let i = 0; i < seriesCatCol.values.length; i++) {
+                const nm = this.name(seriesCatCol.values[i]);
+                let src = byName.get(nm);
+                if (!src) { src = { name: nm, value: v0, cols: vals, group: null, rows: [] }; byName.set(nm, src); srcs.push(src); }
+                src.rows.push(i);
+            }
+        } else if (seriesBound) {
             for (const g of groups) {
                 const v = role(g.values, "values");
                 if (v) srcs.push({ name: this.name(g.name), value: v, cols: g.values, group: g });
@@ -522,30 +571,39 @@ export class Visual implements IVisual {
         const used = srcs.slice(0, limit);
         const isIbcs = s.template === "ibcs";
         this.series = used.map((src, k) => {
-            const own = src.group
-                ? (src.group.objects?.["series"]?.["fill"] as any)?.solid?.color
-                : (src.value.source.objects?.["series"]?.["fill"] as any)?.solid?.color;
-            const selector = src.group
-                ? (this.host.createSelectionIdBuilder().withSeries(vcols, src.group).createSelectionId() as any).getSelector?.()
-                : { metadata: src.value.source.queryName } as any;
+            const r0 = src.rows ? src.rows[0] : -1;
+            const own = src.rows
+                ? (seriesCatCol.objects?.[r0]?.["series"]?.["fill"] as any)?.solid?.color
+                : src.group
+                    ? (src.group.objects?.["series"]?.["fill"] as any)?.solid?.color
+                    : (src.value.source.objects?.["series"]?.["fill"] as any)?.solid?.color;
+            const selector = src.rows
+                ? (this.host.createSelectionIdBuilder().withCategory(seriesCatCol, r0).createSelectionId() as any).getSelector?.()
+                : src.group
+                    ? (this.host.createSelectionIdBuilder().withSeries(vcols, src.group).createSelectionId() as any).getSelector?.()
+                    : { metadata: src.value.source.queryName } as any;
             const color = own || (isIbcs ? IBCS_GREYS[k % IBCS_GREYS.length] : this.host.colorPalette.getColor(src.name || "values").value);
-            return { key: "s" + k, name: src.name, color, format: this.formatOf(src.value), selector };
+            const format = (src.rows ? dyn(src.value, r0) : firstDyn(src.value)) ?? this.formatOf(src.value);
+            return { key: "s" + k, name: src.name, color, format, selector };
         });
 
         const addPt = (panel: string | null, axis: string, si: number, value: number | null, hl: number | null, target: number | null,
-            smin: number | null, smax: number | null, note: string, id: ISelectionId, rule: string | null, tips: { name: string; value: string }[]) => {
+            smin: number | null, smax: number | null, note: string, id: ISelectionId, rule: string | null, tips: { name: string; value: string }[],
+            fmt: string | undefined, menu: ISelectionId | undefined) => {
             const key = (panel ?? "") + "\u0001" + axis + "\u0001" + si;
             let p = this.pts.get(key);
             if (!p) {
-                p = { key, panel, axis, si, value, hl, target, smin, smax, note, ids: [], rule, tips };
+                p = { key, panel, axis, si, value, hl, target, smin, smax, note, ids: [], rule, tips, fmt, menu };
                 this.pts.set(key, p);
             } else {
                 // La misma combinación en varias filas (p. ej. un eje en dos grupos): el primer valor no vacío.
-                if (p.value === null) p.value = value;
+                if (p.value === null) { p.value = value; if (fmt) p.fmt = fmt; }
                 if (p.hl === null) p.hl = hl;
                 if (p.target === null) p.target = target;
                 if (!p.note) p.note = note;
+                if (!p.fmt) p.fmt = fmt;
             }
+            if (fmt && !this.axisDynFmt.has(axis)) this.axisDynFmt.set(axis, fmt);
             const k = this.keyOf(id);
             if (!this.idToPt.has(k)) { this.idToPt.set(k, key); p.ids.push(id); }
             if (value !== null && !Number.isInteger(value)) this.allInt = false;
@@ -571,46 +629,57 @@ export class Visual implements IVisual {
                     const smin = pro ? this.num(role(src.cols, "scaleMin")?.values[i]) : null;
                     const smax = pro ? this.num(role(src.cols, "scaleMax")?.values[i]) : null;
                     const noteRaw = pro ? role(src.cols, "note")?.values[i] : null;
-                    let b = this.host.createSelectionIdBuilder();
-                    for (const c of axisCols) b = b.withCategory(c, i);
-                    if (groupCol) b = b.withCategory(groupCol, i);
-                    if (panelCol) b = b.withCategory(panelCol, i);
-                    b = src.group ? b.withSeries(vcols, src.group) : b.withMeasure(src.value.source.queryName);
+                    // Identidad de la fila y, para el menú contextual, la del punto sin el grupo de ejes: un eje en
+                    // dos grupos es un solo punto con dos filas, y esa identidad las abarca a las dos.
+                    const idOf = (withGroup: boolean) => {
+                        let b = this.host.createSelectionIdBuilder();
+                        for (const c of axisCols) b = b.withCategory(c, i);
+                        if (groupCol && withGroup) b = b.withCategory(groupCol, i);
+                        if (panelCol) b = b.withCategory(panelCol, i);
+                        b = src.group ? b.withSeries(vcols, src.group) : b.withMeasure(src.value.source.queryName);
+                        return b.createSelectionId();
+                    };
+                    const id = idOf(true);
                     const rule = ruleAt([src.value, ...axisCols, groupCol, panelCol], i);
                     if (rule) this.ruleColorsUsed = true;
                     addPt(panel, axisName, si, value, hl, target, smin, smax, noteRaw === null || noteRaw === undefined ? "" : String(noteRaw),
-                        b.createSelectionId(), pro ? rule : null, tipsOf(src.cols, i));
+                        id, pro ? rule : null, tipsOf(src.cols, i), dyn(src.value, i), groupCol ? idOf(false) : undefined);
                 });
             }
         } else {
             // ── Sin Eje: cada medida es un eje ──
             this.measuresAsAxes = true;
-            const rows = panelCol ? panelCol.values.length : 1;
-            const measureCols = (seriesBound ? groups[0].values : groups[0].values).filter(c => c.source.roles?.["values"]);
-            for (const m of measureCols) addAxis(m.source.displayName, null, this.formatOf(m));
-            for (let i = 0; i < rows; i++) {
+            const measureCols = groups[0].values.filter(c => c.source.roles?.["values"]);
+            for (const m of measureCols) addAxis(m.source.displayName, null, firstDyn(m) ?? this.formatOf(m));
+            const addRow = (i: number, si: number, cols: DataViewValueColumn[], group: powerbi.DataViewValueColumnGroup | null) => {
                 const panel = panelCol ? this.name(panelCol.values[i]) : null;
                 addPanel(panel);
-                used.forEach((src, si) => {
-                    const cols = src.group ? src.group.values : groups[0].values;
-                    for (const m of cols.filter(c => c.source.roles?.["values"])) {
-                        let b = this.host.createSelectionIdBuilder();
-                        if (panelCol) b = b.withCategory(panelCol, i);
-                        if (src.group) b = b.withSeries(vcols, src.group);
-                        b = b.withMeasure(m.source.queryName);
-                        const rule = ruleAt([m, panelCol], i);
-                        if (rule) this.ruleColorsUsed = true;
-                        addPt(panel, m.source.displayName, si, this.num(m.values[i]), m.highlights ? this.num(m.highlights[i]) : null,
-                            null, null, null, "", b.createSelectionId(), pro ? rule : null, tipsOf(cols, i));
-                    }
-                });
+                for (const m of cols.filter(c => c.source.roles?.["values"])) {
+                    let b = this.host.createSelectionIdBuilder();
+                    if (seriesCatCol) b = b.withCategory(seriesCatCol, i);
+                    if (panelCol) b = b.withCategory(panelCol, i);
+                    if (group) b = b.withSeries(vcols, group);
+                    b = b.withMeasure(m.source.queryName);
+                    const rule = ruleAt([m, seriesCatCol, panelCol], i);
+                    if (rule) this.ruleColorsUsed = true;
+                    const id = b.createSelectionId();
+                    addPt(panel, m.source.displayName, si, this.num(m.values[i]), m.highlights ? this.num(m.highlights[i]) : null,
+                        null, null, null, "", id, pro ? rule : null, tipsOf(cols, i), dyn(m, i), undefined);
+                }
+            };
+            if (seriesCatCol) {
+                used.forEach((src, si) => { for (const i of src.rows) addRow(i, si, src.cols, null); });
+            } else {
+                const rows = panelCol ? panelCol.values.length : 1;
+                for (let i = 0; i < rows; i++) used.forEach((src, si) => addRow(i, si, src.group ? src.group.values : groups[0].values, src.group));
             }
         }
         if (DEBUG_SEL) {
             const where = (c: any, n: string) => (c?.objects || []).some((o: any) => o?.["markers"]) ? n : "";
             const found = [...vcols.map((c, k) => where(c, "values[" + k + "]")), ...cats.map((c, k) => where(c, "categories[" + k + "]")),
                 ...groups.map((g, k) => (g.objects?.["markers"] ? "group[" + k + "]" : ""))].filter(Boolean);
-            (this as any).diagRule = "DIAG regla fx en: " + (found.join(", ") || "ningún sitio") + " · metadata.markers=" + JSON.stringify(dv.metadata?.objects?.["markers"] ?? null).slice(0, 120);
+            const shape = "cats=[" + cats.map(c => Object.keys(c.source.roles || {}).join("+")).join(",") + "] grupos=" + groups.length + " series=" + srcs.length;
+            (this as any).diagRule = "DIAG " + shape + " · regla fx en: " + (found.join(", ") || "ningún sitio") + " · metadata.markers=" + JSON.stringify(dv.metadata?.objects?.["markers"] ?? null).slice(0, 120);
         }
         if (pro && s.smBySeries && seriesBound && !panelCol && this.series.length > 1) {
             // Un radar por serie, sin campo de paneles: misma escala, cada panel con su serie y su color.
@@ -660,7 +729,15 @@ export class Visual implements IVisual {
         try { return valueFormatter.getFormatStringByColumn(col.source as any) || col.source.format; } catch { return col.source.format; }
     }
 
+    /** Con caché por cadena (y magnitud): con formato dinámico cada valor puede traer la suya. */
     private formatter(format: string | undefined, value?: number): (v: number) => string {
+        const key = (format || "") + "" + (value ?? "");
+        let f = this.fmtCache.get(key);
+        if (!f) { f = this.makeFormatter(format, value); this.fmtCache.set(key, f); }
+        return f;
+    }
+
+    private makeFormatter(format: string | undefined, value?: number): (v: number) => string {
         const culture = this.culture;
         try {
             const f = valueFormatter.create({ format: format || undefined, value, cultureSelector: culture } as any);
@@ -677,7 +754,11 @@ export class Visual implements IVisual {
     private seriesFmt(si: number): (v: number) => string { return this.formatter(this.series[si]?.format); }
     private pointFmt(p: Pt): (v: number) => string {
         const a = this.axisByKey(p.axis);
-        return this.formatter(a?.format ?? this.series[p.si]?.format);
+        return this.formatter(p.fmt ?? a?.format ?? this.series[p.si]?.format);
+    }
+    /** Formato de los valores de los anillos de un eje: el dinámico de su primer valor, el del eje o el de la serie. */
+    private ringFormat(a: Axis): string | undefined {
+        return this.axisDynFmt.get(a.key) ?? a.format ?? this.series[0]?.format;
     }
     private axisByKey(k: string): Axis | undefined { return this.axes.find(a => a.key === k); }
 
@@ -760,9 +841,13 @@ export class Visual implements IVisual {
         return e;
     }
 
+    /** Alto contraste: el de Windows (automático) o forzado desde Accesibilidad, con negro sobre blanco. */
     private hc(): { on: boolean; fg: string; bg: string; sel: string } {
         const p: any = this.host.colorPalette;
-        return { on: !!p?.isHighContrast, fg: p?.foreground?.value || "#000000", bg: p?.background?.value || "#FFFFFF", sel: p?.foregroundSelected?.value || p?.foreground?.value || "#000000" };
+        const sys = !!p?.isHighContrast;
+        const on = sys || this.s.hcMode === "on";
+        return { on, fg: sys ? (p?.foreground?.value || "#000000") : "#000000", bg: sys ? (p?.background?.value || "#FFFFFF") : "#FFFFFF",
+            sel: sys ? (p?.foregroundSelected?.value || p?.foreground?.value || "#000000") : "#000000" };
     }
 
     /** Dibuja con el último dataView. Lo usa update() y el repintado tras resolver la licencia. */
@@ -775,7 +860,7 @@ export class Visual implements IVisual {
         this.guideEl.style.display = "none";
         if (!this.hasData) {
             this.clearSvg(); this.tableEl.style.display = "none"; this.noteEl.style.display = "none";
-            this.watermarkEl.style.display = "none";
+            renderProWatermark(this.watermarkEl, null);
             this.landing(vp.width, vp.height);
             this.warnings();
             return;
@@ -822,21 +907,21 @@ export class Visual implements IVisual {
             const more = this.totalSeries > this.series.length
                 ? this.t("UI_SeriesOf", "{0} of {1} series").replace("{0}", String(this.series.length)).replace("{1}", String(this.totalSeries)) : "";
             if (s.legendPos === "right" && W > 360) {
-                const colW = Math.min(180, Math.max(...items.map(x => x.label.length)) * fl * 0.58 + fl + 16);
+                const colW = Math.min(180, Math.max(...items.map(x => x.label.length)) * fl * 0.58 + fl * 1.6 + 16);
                 let y = rowH;
                 items.forEach(it => { this.legendItem(lg, it.se, it.si, it.label, W - colW, y, fl, s, hc); y += rowH; });
-                if (more) { const t = this.el("text", { x: W - colW, y: y + fl * 0.35, "font-size": Math.max(7, fl - 1), fill: hc.on ? hc.fg : "#83827D" }, lg); t.textContent = more; }
+                if (more) { const t = this.el("text", { x: W - colW, y: y + fl * 0.35, "font-size": Math.max(this.minText, 7, fl - 1), fill: hc.on ? hc.fg : "#83827D" }, lg); t.textContent = more; }
                 right += colW + 6;
             } else {
                 const y = s.legendPos === "bottom" ? H - rowH / 2 - 2 : rowH / 2 + 2;
                 let x = 8;
                 for (const it of items) {
-                    const w = fl + 10 + Math.min(170, it.label.length * fl * 0.58);
+                    const w = fl * 1.6 + 10 + Math.min(170, it.label.length * fl * 0.58);
                     if (x + w > W - 8) break;
                     this.legendItem(lg, it.se, it.si, it.label, x, y, fl, s, hc);
                     x += w + 10;
                 }
-                if (more && x < W - 60) { const t = this.el("text", { x, y: y + fl * 0.35, "font-size": Math.max(7, fl - 1), fill: hc.on ? hc.fg : "#83827D" }, lg); t.textContent = more; }
+                if (more && x < W - 60) { const t = this.el("text", { x, y: y + fl * 0.35, "font-size": Math.max(this.minText, 7, fl - 1), fill: hc.on ? hc.fg : "#83827D" }, lg); t.textContent = more; }
                 if (s.legendPos === "bottom") bottom += rowH + 4; else top += rowH + 4;
             }
         }
@@ -873,9 +958,9 @@ export class Visual implements IVisual {
         s: Settings, hc: { on: boolean; fg: string; bg: string; sel: string }): void {
         const it = this.el("g", { "data-series": se.key, class: "tcrd-leg", tabindex: -1, role: "option" }, lg);
         it.setAttribute("aria-label", this.t("UI_Series", "Series") + " " + se.name);
-        this.el("line", { x1: x, y1: y, x2: x + fl, y2: y, stroke: hc.on ? hc.fg : se.color, "stroke-width": 3,
-            "stroke-dasharray": hc.on ? HC_DASH[si % HC_DASH.length] : "" }, it);
-        const t = this.el("text", { x: x + fl + 5, y: y + fl * 0.35, "font-size": fl, fill: hc.on ? hc.fg : s.legendColor }, it);
+        this.el("line", { x1: x, y1: y, x2: x + fl * 1.6, y2: y, stroke: hc.on ? hc.fg : se.color, "stroke-width": 3,
+            "stroke-dasharray": this.dashOf(si, hc.on) }, it);
+        const t = this.el("text", { x: x + fl * 1.6 + 5, y: y + fl * 0.35, "font-size": fl, fill: hc.on ? hc.fg : s.legendColor }, it);
         t.textContent = label;
         it.addEventListener("click", (e) => {
             if (this.formatMode) return;
@@ -909,7 +994,7 @@ export class Visual implements IVisual {
             t.textContent = this.t("UI_PanelFewAxes", "Fewer than 3 axes in this panel.");
             return;
         }
-        const axFont = clamp(compact ? Math.min(s.axFont, 9) : s.axFont, 6, 30);
+        const axFont = Math.max(this.minText, clamp(compact ? Math.min(s.axFont, 9) : s.axFont, 6, 30));
         const showAx = s.axLabels && W > 120;
         const groups = axes.some(a => a.group !== null);
         const groupSpace = groups ? clamp(s.groupFont, 6, 24) + 10 : 0;
@@ -966,14 +1051,14 @@ export class Visual implements IVisual {
             this.el("path", { d: ring(f), fill: "none", stroke: hc.on ? hc.fg : s.refColor, "stroke-width": 1.5, "stroke-dasharray": "5 3" }, grid);
             const [x, y] = at(f, 0);
             const t = this.el("text", { x: x - 4, y: y - 3, "text-anchor": "end", "font-size": clamp(s.gridFont, 6, 20), "font-weight": 600, fill: hc.on ? hc.fg : s.refColor }, grid);
-            t.textContent = (s.refLabel ? s.refLabel + " " : "") + (s.scaleMode === "target" ? Math.round(s.refValue) + "%" : this.seriesFmt(0)(s.refValue));
+            t.textContent = (s.refLabel ? s.refLabel + " " : "") + (s.scaleMode === "target" ? Math.round(s.refValue) + "%" : this.formatter(this.ringFormat(axes[0]))(s.refValue));
         }
 
         // Valores de los anillos: en el primer radio con escala común; en cada radio con escala por eje.
         if (s.ringLabels && !compact) {
             const gf = clamp(s.gridFont, 6, 20);
             const lbl = this.el("g", { class: "tcrd-rings", "font-size": gf, fill: hc.on ? hc.fg : s.gridLabelColor }, grid);
-            const fmtRing = (a: Axis, v: number) => s.scaleMode === "target" ? Math.round(v) + "%" : this.formatter(a.format ?? this.series[0]?.format, Math.max(Math.abs(scales.get(a.key).lo), Math.abs(scales.get(a.key).hi)))(v);
+            const fmtRing = (a: Axis, v: number) => s.scaleMode === "target" ? Math.round(v) + "%" : this.formatter(this.ringFormat(a), Math.max(Math.abs(scales.get(a.key).lo), Math.abs(scales.get(a.key).hi)))(v);
             const onAxis = (j: number, every: number) => {
                 const a = axes[j], sc = scales.get(a.key);
                 sc.rings.forEach((v, k) => {
@@ -1079,7 +1164,7 @@ export class Visual implements IVisual {
             const pts = axes.map((a, j) => { const p = ptOf(a.key, si); const v = val(p, p?.value ?? null); return v === null ? null : at(frac(v, scales.get(a.key), a.reversed), j); });
             const sg = this.el("g", { "data-shape": se.key, class: "tcrd-shape" }, shapes);
             const complete = pts.every(p => p !== null);
-            const dash = hc.on ? HC_DASH[si % HC_DASH.length] : "";
+            const dash = this.dashOf(si, hc.on);
             if (complete && fo > 0 && !hc.on) this.el("path", { d: this.pathOf(pts, s.curve, cx, cy), fill: color, "fill-opacity": this.hasHighlights ? fo * 0.4 : fo, stroke: "none" }, sg);
             this.el("path", { d: this.pathOf(pts, s.curve, cx, cy), fill: "none", stroke: color, "stroke-width": lw, "stroke-linejoin": "round", "stroke-dasharray": dash,
                 "stroke-opacity": this.hasHighlights ? 0.35 : 1 }, sg);
@@ -1130,7 +1215,7 @@ export class Visual implements IVisual {
                         // Al otro lado del radio que los valores de los anillos, para no pisarlos.
                         const ox = sn * 9, oy = -c * 9;
                         const t = this.el("text", { x: tx + c * 4 + ox, y: ty + sn * 4 + oy + 3, "text-anchor": ox < -2 ? "end" : ox > 2 ? "start" : "middle",
-                            "font-size": Math.max(7, lf - 1), "font-weight": 600, fill: hc.on ? hc.fg : (good ? s.goodColor : s.badColor), "data-gap": si }, gaps);
+                            "font-size": Math.max(this.minText, 7, lf - 1), "font-weight": 600, fill: hc.on ? hc.fg : (good ? s.goodColor : s.badColor), "data-gap": si }, gaps);
                         t.textContent = (d > 0 ? "+" : d < 0 ? "−" : "±") + this.pointFmt(p)(Math.abs(d));
                     }
                 }
@@ -1151,9 +1236,9 @@ export class Visual implements IVisual {
         if (s.axesMean && this.series.length === 1 && s.scaleMode !== "perAxis") {
             const m = this.axesMeans(s, scales)[0];
             if (m !== null) {
-                const t = this.el("text", { x: cx, y: cy - 2, "text-anchor": "middle", "font-size": Math.max(10, Math.min(22, R / 6)), "font-weight": 700, fill: hc.on ? hc.fg : this.series[0].color }, g);
+                const t = this.el("text", { x: cx, y: cy - 2, "text-anchor": "middle", "font-size": Math.max(this.minText, 10, Math.min(22, R / 6)), "font-weight": 700, fill: hc.on ? hc.fg : this.series[0].color }, g);
                 t.textContent = Math.round(m * 100) + "%";
-                const c2 = this.el("text", { x: cx, y: cy + Math.max(9, Math.min(14, R / 10)), "text-anchor": "middle", "font-size": Math.max(7, Math.min(11, R / 12)), fill: hc.on ? hc.fg : "#83827D" }, g);
+                const c2 = this.el("text", { x: cx, y: cy + Math.max(9, Math.min(14, R / 10)), "text-anchor": "middle", "font-size": Math.max(this.minText, 7, Math.min(11, R / 12)), fill: hc.on ? hc.fg : "#83827D" }, g);
                 c2.textContent = this.t("UI_AxesMean", "axes mean (% of scale)");
             }
         }
@@ -1286,6 +1371,7 @@ export class Visual implements IVisual {
         this.noteEl.textContent = msgs.join(" · ");
         const hc = this.hc();
         this.noteEl.style.color = hc.on ? hc.fg : "#83827D";
+        this.noteEl.style.fontSize = Math.max(10, this.minText) + "px";
         return msgs.length > 0;
     }
 
@@ -1323,14 +1409,11 @@ export class Visual implements IVisual {
 
     private renderWatermark(W: number, H: number): void {
         const wanted = this.isPreview() ? this.attemptedPro() : [];
-        const el = this.watermarkEl;
-        if (!wanted.length) { el.style.display = "none"; return; }
-        while (el.firstChild) el.removeChild(el.firstChild);
-        el.style.display = "flex";
-        const t = document.createElement("div"); t.className = "tcrd-wm-title"; t.textContent = this.t("UI_ProPreview", "Pro preview");
-        const w = document.createElement("div"); w.className = "tcrd-wm-why"; w.textContent = wanted.map(x => x.label).join(" · ");
-        el.appendChild(t); el.appendChild(w);
-        el.style.fontSize = Math.max(14, Math.min(44, Math.min(W, H) / 7)) + "px";
+        const hc = this.hc();
+        renderProWatermark(this.watermarkEl, wanted.length ? {
+            width: W, height: H, title: this.t("UI_ProPreview", "Pro preview"), features: wanted.map(x => x.label),
+            highContrast: hc.on ? { foreground: hc.fg, background: hc.bg } : null,
+        } : null);
     }
 
     /** Icono de aviso de la cabecera: filas que Power BI no ha entregado. */
@@ -1481,7 +1564,7 @@ export class Visual implements IVisual {
         g.addEventListener("contextmenu", (e) => {
             e.preventDefault(); e.stopPropagation();
             if (!this.canInteract) return;
-            this.selectionManager.showContextMenu(p.ids[0] ?? ({} as ISelectionId), { x: e.clientX, y: e.clientY });
+            this.selectionManager.showContextMenu(this.menuId(p), { x: e.clientX, y: e.clientY });
         });
         g.addEventListener("mousemove", (e) => this.showTooltip(p, e.clientX, e.clientY));
         g.addEventListener("mouseleave", () => this.host.tooltipService.hide({ immediately: false, isTouchEvent: false }));
@@ -1507,13 +1590,22 @@ export class Visual implements IVisual {
                 case "Escape": if (this.canInteract) this.selectionManager.clear().then(() => this.paintSelection()); break;
                 case "ContextMenu": {
                     const r = g.getBoundingClientRect();
-                    if (this.canInteract) this.selectionManager.showContextMenu(p.ids[0] ?? ({} as ISelectionId), { x: r.left + r.width / 2, y: r.top });
+                    if (this.canInteract) this.selectionManager.showContextMenu(this.menuId(p), { x: r.left + r.width / 2, y: r.top });
                     break;
                 }
                 default: handled = false;
             }
             if (handled) { e.preventDefault(); e.stopPropagation(); }
         });
+    }
+
+    /**
+     * Identidad para el menú contextual. showContextMenu acepta una sola: con una fila, la suya; con varias (un eje en
+     * dos grupos), la del punto sin el grupo, que abarca todas sus filas; si no la hay, el menú general sin dato.
+     */
+    private menuId(p: Pt): ISelectionId {
+        if (p.ids.length === 1) return p.ids[0];
+        return p.menu ?? ({} as ISelectionId);
     }
 
     private keyOf(id: any): string {
@@ -1605,6 +1697,9 @@ export class Visual implements IVisual {
     }
 
     private paintSelection(): void {
+        const hcs = this.hc();
+        this.root.style.setProperty("--tcrd-focus", hcs.on ? hcs.sel : (this.s.focusColor || "#1F4E80"));
+        this.root.style.setProperty("--tcrd-focus-w", clamp(this.s.focusWidth, 1, 6) + "px");
         const elegidos = this.selectedPts();
         const has = elegidos.size > 0;
         const seriesOn = new Set<number>();
@@ -1921,9 +2016,12 @@ export class Visual implements IVisual {
         const col = (obj: string, prop: string, fb: string, v: string, cf = false) => ({
             uid: `${obj}_${prop}`, displayName: name(obj, prop, fb),
             control: { type: powerbi.visuals.FormattingComponent.ColorPicker, properties: {
+                // fx (F04): regla evaluada por punto con selector comodín. altConstantValueSelector null: el color FIJO
+                // se guarda a nivel general; sin él llegaría punto a punto y el panel no lo recordaría.
                 descriptor: { ...d(obj, prop), ...(cf ? {
                     instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule,
                     selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals) as any,
+                    altConstantValueSelector: null,
                 } : {}) },
                 value: { value: v || "" },
             } },
@@ -1933,7 +2031,9 @@ export class Visual implements IVisual {
             return { uid: `${obj}_${prop}`, displayName: name(obj, prop, fb),
                 control: { type: powerbi.visuals.FormattingComponent.Dropdown, properties: { descriptor: d(obj, prop), value: list.find(x => x.value === v) ?? list[0], items: list } as any } };
         };
-        const card = (obj: string, fb: string, slices: any[]) => ({ uid: `${obj}_card`, displayName: T(`Obj_${obj}`, fb), groups: [{ uid: `${obj}_g`, displayName: "", slices }] });
+        // "Restablecer valores predeterminados" en cada tarjeta: también borra colores fijos guardados punto a punto.
+        const card = (obj: string, fb: string, slices: any[]) => ({ uid: `${obj}_card`, displayName: T(`Obj_${obj}`, fb), groups: [{ uid: `${obj}_g`, displayName: "", slices }],
+            revertToDefaultDescriptors: slices.map(sl => sl.control.properties.descriptor) });
         // Un color por serie, guardado con el selector de la serie (o de la medida, si cada medida es una serie).
         const seriesColors = this.series.filter(x => x.selector).map((se, k) => ({
             uid: `series_fill_${k}`, displayName: se.name || T("Prop_series_fill", "Color"),
@@ -2057,6 +2157,13 @@ export class Visual implements IVisual {
                 col("smallMultiples", "background", "Panel background", s.smBackground),
                 tog("smallMultiples", "border", "Panel border", s.smBorder),
                 col("smallMultiples", "borderColor", "Panel border color", s.smBorderColor),
+            ]),
+            card("accessibility", "Accessibility", [
+                dd("accessibility", "highContrast", "High contrast", s.hcMode, [["auto", "Enum_hc_auto", "Automatic (Windows setting)"], ["on", "Enum_hc_on", "On"]]),
+                col("accessibility", "focusColor", "Focus color", s.focusColor),
+                num("accessibility", "focusWidth", "Focus width", s.focusWidth),
+                num("accessibility", "minTextSize", "Minimum text size", s.minText),
+                tog("accessibility", "patterns", "Line patterns per series", s.patterns),
             ]),
             card("background", "Background", [
                 col("background", "color", "Color", s.background),

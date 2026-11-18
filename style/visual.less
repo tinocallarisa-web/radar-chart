@@ -1,3 +1,4 @@
+@import (less) "comun/watermark.less";
 .tcrd {
     position: absolute;
     inset: 0;
@@ -9,7 +10,7 @@
     text { user-select: none; }
 }
 .tcrd-pt, .tcrd-leg, .tcrd-axis { cursor: pointer; outline: none; }
-.tcrd-pt:focus-visible .tcrd-hit { stroke: #1F4E80; stroke-width: 2px; stroke-dasharray: 3 2; }
+.tcrd-pt:focus-visible .tcrd-hit { stroke: var(--tcrd-focus, #1F4E80); stroke-width: var(--tcrd-focus-w, 2px); stroke-dasharray: 3 2; }
 .tcrd-table {
     display: none;
     flex: 0 0 auto;
@@ -31,22 +32,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-.tcrd-watermark {
-    display: none;
-    position: absolute;
-    inset: 0;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    // Visible sobre la rejilla sin tapar las formas: color más opaco y halo claro.
-    color: rgba(43, 108, 176, 0.42);
-    font-weight: 800;
-    text-align: center;
-    text-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 2px rgba(255, 255, 255, 0.9);
-    .tcrd-wm-title { text-transform: uppercase; letter-spacing: .08em; }
-    .tcrd-wm-why { font-size: .4em; font-weight: 700; margin-top: .3em; color: rgba(31, 78, 128, 0.85); max-width: 80%; }
 }
 
 // Pantalla de inicio: tres tamaños según el recuadro
