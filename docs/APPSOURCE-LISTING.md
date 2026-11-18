@@ -127,4 +127,20 @@ Support: support@tcviz.com
 | Privacy | https://tinocallarisa-web.github.io/radar-chart/privacy.html |
 | Terms (EULA) | https://tinocallarisa-web.github.io/radar-chart/terms.html |
 | Logo | `assets/logo_300x300.png` |
-| Screenshots | `assets/` (1366x768) |
+| Screenshots | `assets/` (1366x768), see below |
+
+## Screenshots (Partner Center takes 5) — upload in this order
+
+Made 18-11-2026 for 1.0.1.0 with `tools/gen_infographic.py` (simulator images, collection styles; no image says
+"Power BI Desktop"). Remove every old image in Partner Center first: they show the 1.0.0 templates.
+
+| # | File | What it shows |
+|---|---|---|
+| 1 | `assets/Screenshot_1.png` | The visual at its best: three suppliers, fixed 0–5 scale, target dashed and bands (Pro) |
+| 2 | `assets/infographic.png` | Infographic: fields, get started, Free and Pro |
+| 3 | `assets/infographic-pro.png` | Free and Pro on the same data: three suppliers vs one radar per supplier against the target |
+| 4 | `assets/Screenshot_2.png` | One Pro feature: the target with the gap written on every axis |
+| 5 | `assets/Screenshot_3.png` | Readable at any size (OKviz D06): large, medium and small at the same scale, sizes labelled |
+
+Not uploaded (5 is the limit): `assets/Screenshot_4.png`, the six collection styles. Swap it for #4 if the styles matter
+more than the target for this release.

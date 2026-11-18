@@ -1,157 +1,173 @@
 # -*- coding: utf-8 -*-
-"""Infografías de la ficha (1366x768): docs/infographic.html y docs/infographic-pro.html, y sus PNG en assets/.
+"""Infografías y capturas de la ficha del Radar (1366x768, assets/) con la plantilla común de la web.
 
-Imágenes de entrada (tools/img/): free.png (simulador: 3 proveedores, escala fija 0-5), pro.png (simulador: objetivo,
-diferencia por eje y bandas) y desktop.png (Power BI Desktop: un radar por proveedor). python tools/gen_infographic.py
+Plantilla: C:/tcviz/datos/demo_rtm/infografias.py (la misma del Treemap). El texto de la infografía general sale de la
+ficha web (C:/tcviz/web/src/data.js, producto radar-chart); lo que allí sigue en 1.0.0 (las seis plantillas propias)
+se corrige aquí abajo en FICHA_1_0_1 hasta que se actualice la ficha web.
+Las imágenes son del simulador (tools/simulador/capturas/60_* a 62_*), que carga el visual real con
+test_visuales/Radar/evaluacion_proveedores.csv; ninguna lleva la marca de agua "Pro preview" (la build de prueba fuerza Pro).
+Por eso ningún pie dice "Power BI Desktop".
+
+    node build-test.js && cp -r .tmp/drop .tmp/drop_pro && python tools/simulador/harness.py ficha && python tools/gen_infographic.py
+Salida: assets/infographic.png, infographic-pro.png, Screenshot_1..4.png; docs/infographic.html e infographic-pro.html
+(autocontenidos, imágenes incrustadas). Los HTML de trabajo y los PNG 2x quedan en .tmp/ficha (no se suben a la web:
+la infografía de tcviz.com es otra, hecha desde Desktop con Begudes Nord).
 """
-import asyncio, base64, io, os
+import base64, html, mimetypes, os, re, shutil, subprocess, sys, tempfile
+sys.path.insert(0, r"C:\tcviz\datos\demo_rtm")
+import infografias as I
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-IMG = os.path.join(ROOT, "tools", "img")
+CAP = os.path.join(ROOT, "tools", "simulador", "capturas")
+ASSETS = os.path.join(ROOT, "assets")
+OUT = os.path.join(ROOT, ".tmp", "ficha")
+os.makedirs(OUT, exist_ok=True)
+e = html.escape
+CSS = I.CSS % {"pop": I.uri(os.path.join(I.BASE, "tema", "Poppins"))}
+LOGO = I.uri(os.path.join(I.WEB, "logos", "tcviz-logo-light.svg"))
+cap = lambda n: I.uri(os.path.join(CAP, n + ".png"))
+
+P = {p["id"]: p for p in I.productos()}["radar-chart"]
+# 1.0.1: estilos de la colección en lugar de las seis plantillas propias (la ficha web aún dice "6 templates incl. IBCS").
+for f in P["features"]:
+    if f["id"] == "F07":
+        f["name"] = "Report theme or 6 collection styles"
+# Los tres pozos principales y el resto en una línea: con los nueve, la plantilla corta la tarjeta de campos.
+RESTO = [r["role"] for r in P["dataRoles"][3:]]
+P["dataRoles"] = P["dataRoles"][:3]
+# En la columna Pro la plantilla corta a dos líneas: la de los grupos de ejes no cabía.
+P["freemium"]["pro"] = [x.replace("Axis groups, annotations, a value table and the mean of the axes", "Axis groups, annotations, value table, axes mean")
+                        for x in P["freemium"]["pro"]]
+DATOS = "Sample data: supplier evaluation scored 1 to 5, fictitious companies"
 
 
-def data_uri(name, width):
-    im = Image.open(os.path.join(IMG, name)).convert("RGB")
-    # Las capturas del simulador llevan un marco gris: se recorta al contenido.
-    from PIL import ImageChops
-    fondo = Image.new("RGB", im.size, im.getpixel((1, 1)))
-    caja = ImageChops.difference(im, fondo).point(lambda v: 255 if v > 6 else 0).getbbox()
-    if caja and name != "desktop.png":
-        im = im.crop(caja)
-    if im.width > width:
-        im = im.resize((width, round(im.height * width / im.width)), Image.LANCZOS)
-    b = io.BytesIO(); im.save(b, "JPEG", quality=88)
-    return "data:image/jpeg;base64," + base64.b64encode(b.getvalue()).decode()
+def autocontenido(h_html, destino):
+    """Copia el HTML con cada file:/// incrustado como data URI, para que docs/ no apunte a C:/."""
+    t = open(h_html, encoding="utf-8").read()
+
+    def incrusta(m):
+        ruta = m.group(1).replace("file:///", "").replace("/", os.sep)
+        tipo = mimetypes.guess_type(ruta)[0] or ("font/ttf" if ruta.endswith(".ttf") else "application/octet-stream")
+        return "data:%s;base64,%s" % (tipo, base64.b64encode(open(ruta, "rb").read()).decode())
+    t = re.sub(r"(file:///[^'\")\s]+)", incrusta, t)
+    open(destino, "w", encoding="utf-8", newline="\n").write(t)
 
 
-CSS = """
-:root{--bg:#FAF9F5;--bg2:#EDE9DE;--line:#DAD9D4;--t1:#3D3929;--t2:#535146;--t3:#83827D;--acc:#2B6CB0;--accd:#1F4E80;--acc2:#3E9C5B;--acc2l:#E3F2E8}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{background:#888;font-family:'Segoe UI',system-ui,sans-serif}
-#infographic{background:var(--bg);color:var(--t1);width:1366px;height:768px;overflow:hidden;padding:22px 34px 16px;display:flex;flex-direction:column;gap:14px}
-.head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
-.head h1{font-family:Poppins,'Segoe UI',sans-serif;font-size:32px;font-weight:700;line-height:1.05}
-.head h1 span{color:var(--acc)}
-.head p{font-size:15px;color:var(--t2);margin-top:6px;max-width:760px}
-.brand{font-size:12px;color:var(--t3);text-align:right;line-height:1.5}
-.brand b{color:var(--acc)}
-.grid{display:grid;gap:16px;flex:1;min-height:0}
-.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-height:0}
-.card h3{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
-.shot{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-direction:column;min-height:0}
-.shot img{width:100%;height:100%;object-fit:contain;display:block;min-height:0;flex:1}
-.shot .cap{font-size:12px;color:var(--t3);padding:6px 4px 0}
-.steps{list-style:none;display:grid;gap:7px}
-.steps li{display:grid;grid-template-columns:24px 1fr;gap:8px;font-size:13.5px;color:var(--t2);align-items:start}
-.steps b.n{width:22px;height:22px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px}
-.steps strong{color:var(--t1)}
-ul.l{list-style:none;display:grid;gap:5px}
-ul.l li{font-size:13px;color:var(--t2);padding-left:18px;position:relative;line-height:1.35}
-ul.l li::before{content:"";position:absolute;left:2px;top:6px;width:8px;height:8px;border-radius:2px;background:var(--acc)}
-ul.l.pro li::before{background:var(--acc2)}
-.big ul.l{gap:14px} .big ul.l li{font-size:15px} .big ul.l li::before{top:7px}
-.chip{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.8px;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
-.chip.free{background:#E6EEF8;color:var(--accd)} .chip.pro{background:var(--acc2l);color:#2F7A47}
-.foot{display:flex;justify-content:space-between;font-size:12px;color:var(--t3)}
-.foot b{color:var(--t2)}
-"""
-
-DIAGRAMA = """<svg viewBox="0 0 360 225" style="width:100%;display:block" aria-hidden="true">
-  <g font-family="Segoe UI, sans-serif" font-size="12" fill="#535146">
-    <g fill="none" stroke="#D6D4D0">
-      <path d="M130 20 L217 70 L217 170 L130 220 L43 170 L43 70 Z"/><path d="M130 70 L173 95 L173 145 L130 170 L87 145 L87 95 Z"/>
-      <path d="M130 120 L130 20 M130 120 L217 70 M130 120 L217 170 M130 120 L130 220 M130 120 L43 170 M130 120 L43 70"/>
-    </g>
-    <path d="M130 35 L200 80 L182 150 L130 185 L69 155 L60 80 Z" fill="#2B6CB0" fill-opacity="0.18" stroke="#2B6CB0" stroke-width="2"/>
-    <path d="M130 55 L190 85 L200 160 L130 165 L80 149" fill="none" stroke="#3E9C5B" stroke-width="2"/>
-    <path d="M130 45 L195 83 L195 157 L130 195 L65 157 L65 83 Z" fill="none" stroke="#3D3929" stroke-width="1.5" stroke-dasharray="5 4"/>
-    <text x="236" y="40" font-weight="700" fill="#2B6CB0">Series</text><text x="236" y="54" font-size="11">one shape each</text>
-    <text x="236" y="86" font-weight="700" fill="#3D3929">Target (Pro)</text><text x="236" y="100" font-size="11">gap on every axis</text>
-    <text x="236" y="132" font-weight="700" fill="#3E9C5B">Gap</text><text x="236" y="146" font-size="11">empty, never zero</text>
-    <text x="236" y="178" font-weight="700">Rings</text><text x="236" y="192" font-size="11">fixed scale from 0</text>
-  </g></svg>"""
+def render(h_html, nombre):
+    png2x = os.path.join(OUT, nombre + "@2x.png")
+    png1x = os.path.join(ASSETS, nombre + ".png")
+    subprocess.run([I.EDGE, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=2",
+                    "--allow-file-access-from-files", f"--screenshot={png2x}", "--window-size=1366,768", I.uri(h_html)],
+                   capture_output=True, timeout=90)
+    Image.open(png2x).convert("RGB").resize((1366, 768), Image.LANCZOS).save(png1x, optimize=True)
+    print("  ", os.path.relpath(png1x, ROOT))
 
 
-def page(title, body):
-    return (f'<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>{title}</title>'
-            '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap">'
-            f'<style>{CSS}</style></head><body><div id="infographic">{body}</div></body></html>\n')
+def cabecera(titulo, sub, tier='<span class="pill free">Free</span><span class="pill pro">Pro</span>'):
+    return (f'<div class="cab"><img class="logo" src="{LOGO}"><div class="sep"></div>'
+            f'<div><h1>{e(titulo)}</h1><p>{e(sub)}</p></div><div class="tier">{tier}</div></div><div class="raya"></div>')
 
 
-def general():
-    body = f"""
-<div class="head"><div><h1>Radar &amp; Spider Chart <span>by TCViz</span></h1>
-<p>Compare suppliers, people or products on several criteria at once — on a scale that does not move when you filter.</p></div>
-<div class="brand"><b>tcviz.com</b><br>Power BI custom visual · no network requests</div></div>
-<div class="grid" style="grid-template-columns:400px 1fr">
-  <div style="display:flex;flex-direction:column;gap:14px;min-height:0">
-    <div class="card"><h3>How to read it</h3>{DIAGRAMA}
-      <p style="font-size:12.5px;color:var(--t2);margin-top:4px">Further out is better. Axes keep their order when you filter; the area is never read as a total.</p></div>
-    <div class="card"><h3>Start in 3 steps</h3><ol class="steps">
-      <li><b class="n">1</b><span><strong>Axis</strong> · the criteria: quality, price, delivery</span></li>
-      <li><b class="n">2</b><span><strong>Values</strong> · the score, set to Average</span></li>
-      <li><b class="n">3</b><span><strong>Series</strong> · what you compare: supplier, employee</span></li></ol></div>
-    <div class="card" style="flex:1"><h3>Free <span class="chip free">FREE</span></h3><ul class="l">
-      <li>3 series, fixed scale from zero, gaps for blanks</li><li>Measures as axes, no unpivoting</li>
-      <li>Report theme + 6 collection styles; curves, shapes</li><li>Filtering, bookmarks, keyboard, 12 languages</li></ul></div>
-  </div>
-  <div class="shot"><img src="{data_uri('free.png', 1300)}" alt=""><div class="cap">Supplier evaluation, scored 1 to 5: Acme leads on quality and service, Borealis on delivery and sustainability. Free version, data labels on.</div></div>
+PIE = (f'<div class="fin"><span>tcviz.com · Power BI custom visual · {e(P["name"])}</span>'
+       f'<span>{e(DATOS)} · drawn by the visual, Report theme</span></div>')
+
+
+def pagina(nombre, cuerpo, extra_css=""):
+    h = os.path.join(OUT, nombre + ".html")
+    open(h, "w", encoding="utf-8").write(f'<!doctype html><html><head><meta charset="utf-8"><style>{CSS}{extra_css}</style></head><body>{cuerpo}</body></html>')
+    return h
+
+
+# 1. Infografía general: plantilla común de la web, con la imagen principal en el centro
+tmp = tempfile.mkdtemp()
+try:
+    shutil.copy(os.path.join(CAP, "60_central.png"), os.path.join(tmp, "central_99.png"))
+    exp, I.EXP = I.EXP, tmp
+    ficha = I.ficha(P, 99, "Which supplier meets the required level?")
+    I.EXP = exp
+    viejo = "Sample report on Begudes Nord, a fictitious drinks company — Power BI Desktop, TCViz theme"
+    assert viejo in ficha   # la imagen es del simulador y con otros datos: el pie de la plantilla mentiría
+    ficha = ficha.replace(viejo, DATOS + " — drawn by the visual, Report theme; target and bands are Pro")
+    fin_campos = '</div></div>\n<div class="der">'
+    assert ficha.count(fin_campos) == 1
+    ficha = ficha.replace(fin_campos, f'<div class="mas">+ {len(RESTO)} more: {e(", ".join(RESTO))}</div>' + fin_campos)
+    h1 = os.path.join(OUT, "infographic.html")
+    open(h1, "w", encoding="utf-8").write(ficha)
+    render(h1, "infographic")
+    autocontenido(h1, os.path.join(ROOT, "docs", "infographic.html"))
+finally:
+    shutil.rmtree(tmp, ignore_errors=True)
+
+# 2. Free frente a Pro con el mismo dato
+DOS = """.dos{position:absolute;left:24px;right:24px;top:115px;bottom:40px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dos .card{padding:14px 16px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.dos .im{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center}
+.dos img{max-width:100%;max-height:100%;border-radius:4px;display:block;border:1px solid #EEE}
+.dos h2{font-size:16px} .dos .f h2{color:#3E9C5B} .dos .p h2{color:#2B6CB0}
+.dos ul{list-style:none;margin-top:10px;columns:2;column-gap:18px}
+.dos li{font-size:12.5px;line-height:1.35;padding-left:16px;position:relative;margin-bottom:6px;break-inside:avoid}
+.dos .f li:before{content:'✓';color:#3E9C5B;position:absolute;left:0;font-weight:700}
+.dos .p li:before{content:'+';color:#2B6CB0;position:absolute;left:0;font-weight:700}
+.sub{font-size:12.5px;color:#666;margin:-4px 0 8px}"""
+free_items = ["Up to 3 series on a fixed scale from zero", "Axes keep their order when you filter", "Gaps for empty values, never zeros",
+              "Measures as axes, no unpivoting", "Report theme or 6 collection styles", "Filtering, bookmarks, keyboard, 12 languages"]
+li = lambda xs: "".join(f"<li>{e(x)}</li>" for x in xs)
+h2 = pagina("infographic-pro", cabecera("Free compares three. Pro measures all of them.", f'{P["name"]} — the same supplier evaluation, without and with a licence.') + f"""
+<div class="dos">
+<div class="card f"><h2>Free — a complete radar chart</h2><div class="sub">Three suppliers on one scale from 0 to 5, labels on.</div>
+<div class="im"><img src="{cap('60_free')}"></div><ul>{li(free_items)}</ul></div>
+<div class="card p"><h2>Pro — one radar per supplier, against the target</h2><div class="sub">All five suppliers, the same scale, the required level dashed.</div>
+<div class="im"><img src="{cap('60_pro_sm')}"></div><ul>{li(P["freemium"]["pro"])}</ul></div>
 </div>
-<div class="foot"><span><b>Pro</b> adds up to 12 series, targets with the gap per axis, a scale per axis, bands, small multiples, axis groups, annotations and a value table.</span><span>Documentation: tinocallarisa-web.github.io/radar-chart</span></div>
-"""
-    return page("Radar & Spider Chart by TCViz — Visual Guide", body)
+<div class="fin"><span>tcviz.com · Power BI custom visual · {e(P["name"])}</span><span>Without a licence, Pro features are drawn working under a "Pro preview" watermark while you edit.</span></div>""", DOS)
+render(h2, "infographic-pro")
+autocontenido(h2, os.path.join(ROOT, "docs", "infographic-pro.html"))
+
+# 3. Capturas de la ficha: una idea por imagen
+UNA = """.una{position:absolute;left:24px;right:24px;top:112px;bottom:40px;display:flex;gap:16px}
+.una .card{padding:14px;display:flex;align-items:center;justify-content:center;flex:1;min-width:0}
+.una img{max-width:100%;max-height:100%;display:block}
+.una .lado{flex:0 0 330px;flex-direction:column;align-items:flex-start;justify-content:flex-start}
+.una .lado h2{font-size:17px;margin-bottom:8px} .una .lado p{font-size:13.5px;line-height:1.45;color:#444;margin-bottom:10px}
+.tres{position:absolute;left:24px;right:24px;top:112px;bottom:40px;display:grid;grid-template-columns:1.55fr 1fr;grid-template-rows:322px 1fr;gap:14px}
+.tres .card{padding:10px;display:flex;flex-direction:column;align-items:flex-start;min-height:0;overflow:hidden}
+.tres .l{grid-row:1 / span 2}
+.tres img{display:block;border:1px solid #EEE}
+.tres b{font-size:12.5px;margin-bottom:6px;color:#555}
+.est{position:absolute;left:24px;right:24px;top:112px;bottom:40px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;gap:12px}
+.est .card{padding:8px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.est img{flex:1 1 auto;min-height:0;width:100%;object-fit:contain;display:block;border-radius:3px} .est b{font-size:12.5px;margin-top:5px;color:#555}"""
 
 
-def pro():
-    body = f"""
-<div class="head"><div><h1>Radar &amp; Spider Chart <span>Pro</span></h1>
-<p>Measure every profile against a target, on the scale each criterion needs — on your own data, in Power BI.</p></div>
-<div class="brand"><b>tcviz.com</b><br>Pro preview while you edit · licence on Microsoft AppSource</div></div>
-<div class="grid" style="grid-template-columns:850px 1fr">
-  <div style="display:flex;flex-direction:column;gap:14px;min-height:0">
-    <div class="shot" style="flex:none"><img src="{data_uri('desktop.png', 1300)}" alt="" style="height:auto"><div class="cap">Power BI Desktop · one radar per supplier, same scale, no panel field needed.</div></div>
-    <div class="card big" style="flex:1"><h3>Pro <span class="chip pro">PRO</span></h3><ul class="l pro" style="grid-template-columns:1fr 1fr;column-gap:22px;row-gap:14px;margin-top:6px">
-      <li>Up to <strong>12 series</strong></li>
-      <li><strong>Target</strong> with the gap per axis</li>
-      <li><strong>Scale per axis</strong>; lower-is-better axes</li>
-      <li>Bands and a reference ring</li>
-      <li><strong>Small multiples</strong> or one radar per series</li>
-      <li>Axis groups, annotations, value table</li>
-      <li>Conditional formatting (fx) on markers</li></ul></div>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:14px;min-height:0">
-    <div class="shot" style="flex:none"><img src="{data_uri('pro.png', 900)}" alt="" style="height:auto"><div class="cap">One supplier against the required level: the gap on every axis, in green or red.</div></div>
-    <div class="card big" style="flex:1"><h3>Try it on your data</h3><ul class="l">
-      <li>Turn on any Pro feature while editing: it is drawn working on your own data, under a “Pro preview” watermark.</li>
-      <li>Free stays a complete, correct radar: Pro adds ways to compare, not the right answer.</li>
-      <li>Everything is computed inside your report. No network requests.</li></ul></div>
-  </div>
-</div>
-"""
-    return page("Radar & Spider Chart by TCViz — Pro", body)
+def una(n, titulo, sub, img, lado_h, lado_p):
+    ps = "".join(f"<p>{e(x)}</p>" for x in lado_p)
+    h = pagina(f"Screenshot_{n}", cabecera(titulo, sub) + f"""<div class="una"><div class="card"><img src="{cap(img)}"></div>
+<div class="card lado"><h2>{e(lado_h)}</h2>{ps}</div></div>""" + PIE, UNA)
+    render(h, f"Screenshot_{n}")
 
 
-async def render(html_path, png_path):
-    from playwright.async_api import async_playwright
-    async with async_playwright() as p:
-        b = await p.chromium.launch()
-        pg = await b.new_page(viewport={"width": 1366, "height": 768})
-        await pg.goto("file:///" + html_path.replace("\\", "/"))
-        await pg.wait_for_timeout(800)
-        el = await pg.query_selector("#infographic")
-        await el.screenshot(path=png_path)
-        await b.close()
-
-
-def main():
-    os.makedirs(os.path.join(ROOT, "assets"), exist_ok=True)
-    for nombre, f, png in (("infographic.html", general, "infographic.png"), ("infographic-pro.html", pro, "infographic-pro.png")):
-        h = os.path.join(ROOT, "docs", nombre)
-        io.open(h, "w", encoding="utf-8", newline="\n").write(f())
-        asyncio.run(render(h, os.path.join(ROOT, "assets", png)))
-        print(nombre, "->", png, Image.open(os.path.join(ROOT, "assets", png)).size)
-
-
-if __name__ == "__main__":
-    main()
+una(1, "Which supplier meets the required level?", "Three suppliers on one fixed scale, the required level dashed and bands for low, middle and high (Pro).",
+    "60_hero", "Read it in one pass",
+    ["Further out is better. The scale starts at zero and stays at 0 to 5 when you filter, so a 3 always looks like a 3.",
+     "The dashed shape is the required level on every axis: Borealis Parts clears it on delivery, price and sustainability; Cobalt & Co only on price, and meets it on delivery.",
+     "The green ring marks 4 to 5, the amber one 2.5 to 4.",
+     "Free draws the same radar with up to three series; the target and the bands are Pro."])
+una(2, "The gap on every axis", "Target (Pro): one supplier against the required level, the difference written on each axis.",
+    "60_pro_gap", "Where it falls short, in numbers",
+    ["Drop the required level into Target: it is drawn as a dashed shape on the same scale.",
+     "Each axis shows the gap: green where the supplier meets or beats it, red where it falls short.",
+     "Acme Metals is 0.9 short on delivery and 0.8 on sustainability, and above target on quality and risk.",
+     "With several series, the gaps appear for the series you select; a % of target scale is also available."])
+w = lambda px: f"{px * 0.82:.0f}px"   # las tres a la misma escala: 0,82 px de imagen por px del visual
+h3 = pagina("Screenshot_3", cabecera("Readable at any size", "The same visual and settings in a large, medium and small slot, all at the same scale: axis names shorten and the legend keeps what fits.") + f"""
+<div class="tres"><div class="card l"><b>Large · 900 × 520</b><img src="{cap('61_size_l')}" style="width:{w(900)}"></div>
+<div class="card"><b>Medium · 520 × 330</b><img src="{cap('61_size_m')}" style="width:{w(520)}"></div>
+<div class="card"><b>Small · 300 × 170</b><img src="{cap('61_size_s')}" style="width:{w(300)}"></div></div>""" + PIE, UNA)
+render(h3, "Screenshot_3")
+est = "".join(f'<div class="card"><img src="{cap("62_style_" + s)}"><b>{s.title()}</b></div>'
+              for s in ("boardroom", "ledger", "editorial", "signal", "aurora", "terrace"))
+h4 = pagina("Screenshot_4", cabecera("Six collection styles, free", "The same looks as the rest of TCViz, so a page with other TCViz visuals reads as one report. Or keep the Report theme.") +
+            f'<div class="est">{est}</div>' + PIE.replace(", Report theme", ""), UNA)
+render(h4, "Screenshot_4")
+print("ok")

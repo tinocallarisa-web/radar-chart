@@ -11,6 +11,7 @@ Bundles (copias de .tmp/drop tras cada build):
     .tmp/old = el 1.0.0.0 publicado (_releases/), para comparar el fallo de "medidas como ejes + Serie".
 Uso:  python tools/simulador/harness.py   → tools/simulador/capturas/*.png
       python tools/simulador/harness.py estilos   → solo los estilos de la colección (50_*)
+      python tools/simulador/harness.py ficha     → solo las imágenes de la ficha (60_*), para tools/gen_infographic.py
 """
 import asyncio, csv, io, json, os, sys
 from collections import OrderedDict
@@ -85,19 +86,19 @@ def agg():
     return acc, sup, crit
 
 
-def dv_con_eje(n_sup=3, dyn=None, target=True, objects=None):
+def dv_con_eje(n_sup=3, dyn=None, target=True, objects=None, fmt="0"):
     """Axis = Criterion, Series = Supplier (valores agrupados), Values = Score, Target = Required."""
     acc, sup, crit = agg()
     sup = sup[:n_sup]
     axis = {"source": src("Criterion", "T.Criterion", "axis"), "values": crit}
     groups, cols = [], [axis["source"], src("Supplier", "T.Supplier", "series")]
     for s in sup:
-        sc = {"source": src("Score", "Avg(T.Score)", "values", "0", True), "values": [round(acc[(s, c)][0] / acc[(s, c)][1], 2) for c in crit]}
+        sc = {"source": src("Score", "Avg(T.Score)", "values", fmt, True), "values": [round(acc[(s, c)][0] / acc[(s, c)][1], 2) for c in crit]}
         if dyn:
             sc["objects"] = [{"general": {"formatString": dyn(c)}} for c in crit]
         g = {"name": s, "values": [sc]}
         if target:
-            g["values"].append({"source": src("Required", "Avg(T.Required)", "target", "0", True),
+            g["values"].append({"source": src("Required", "Avg(T.Required)", "target", fmt, True),
                                 "values": [round(acc[(s, c)][2] / max(1, acc[(s, c)][3]), 2) for c in crit]})
         groups.append(g)
         cols.append(sc["source"])
@@ -180,6 +181,8 @@ async def main():
     dyn = lambda c: '"€"0.00' if c == "Price" else '0.0" pts"'
     async with async_playwright() as p:
         b = await p.chromium.launch()
+        if "ficha" in sys.argv:
+            await ficha(b); await b.close(); return
         # Estilos de la colección (1.0.1): los siete, con objetivo, bandas, anillo de referencia, etiquetas y tabla.
         full = {"labels": {"show": True}, "valueTable": {"show": True}, "bands": {"show": True}, "reference": {"show": True, "value": 3}}
         print("Estilos de la colección:")
@@ -224,6 +227,23 @@ async def main():
         await shot(b, "old", "30a_menu_varias_filas_1.0.0.0", mm, menu=[crit[0], crit[1]])
         await shot(b, "drop_pro", "30b_menu_varias_filas_1.0.1", mm, menu=[crit[0], crit[1]])
         await b.close()
+
+
+async def ficha(b):
+    """Imágenes de la ficha (1.0.1): media de Score con un decimal, Report theme salvo en la rejilla de estilos."""
+    print("Ficha:")
+    sin_guia = {"style": {"template": "clean", "guide": False}}
+    await shot(b, "drop_pro", "60_free", dv_con_eje(n_sup=3, target=False, fmt="0.0", objects={**sin_guia, "labels": {"show": True}}), W=760, H=500)
+    await shot(b, "drop_pro", "60_hero", dv_con_eje(n_sup=3, fmt="0.0", objects={**sin_guia, "bands": {"show": True}}), W=900, H=600)
+    await shot(b, "drop_pro", "60_pro_gap", dv_con_eje(n_sup=1, fmt="0.0", objects={**sin_guia, "labels": {"show": True}}), W=900, H=600)
+    await shot(b, "drop_pro", "60_pro_sm", dv_con_eje(n_sup=5, fmt="0.0", objects={**sin_guia, "smallMultiples": {"bySeries": True}}), W=760, H=500)
+    # Imagen central de la infografía general, al tamaño exacto del hueco de la plantilla (852 x 354): sin reescalar.
+    await shot(b, "drop_pro", "60_central", dv_con_eje(n_sup=3, fmt="0.0", objects={**sin_guia, "bands": {"show": True}}), W=852, H=354)
+    # D06: el mismo visual y los mismos ajustes en tres tamaños (se montan a la misma escala en la imagen)
+    for k, (w, h) in {"l": (900, 520), "m": (520, 330), "s": (300, 170)}.items():
+        await shot(b, "drop_pro", "61_size_" + k, dv_con_eje(n_sup=3, fmt="0.0", objects=sin_guia), W=w, H=h)
+    for k in ["boardroom", "ledger", "editorial", "signal", "aurora", "terrace"]:
+        await shot(b, "drop_pro", "62_style_" + k, dv_con_eje(n_sup=3, target=False, fmt="0.0", objects={"style": {"template": k, "guide": False}}), W=760, H=480)
 
 
 if __name__ == "__main__":
