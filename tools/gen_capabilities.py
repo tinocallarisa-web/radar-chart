@@ -31,9 +31,10 @@ OBJECTS = [
         ("formatString", "Format string", "fmt"),
     ]),
     ("style", "Style template", [
-        ("template", "Template", E(("clean", "Enum_tpl_clean", "Clean"), ("classic", "Enum_tpl_classic", "Classic"),
-                                    ("minimal", "Enum_tpl_minimal", "Minimal"), ("contrast", "Enum_tpl_contrast", "Contrast"),
-                                    ("compact", "Enum_tpl_compact", "Compact"), ("ibcs", "Enum_tpl_ibcs", "IBCS style"))),
+        # Los estilos de la colección (los mismos que Treemap y Line Chart), gratis en el Radar. Las plantillas de la
+        # 1.0.0 (classic, minimal, contrast, compact, ibcs) se leen como el estilo más parecido en src/visual.ts.
+        ("template", "Template", E(("clean", "Enum_tpl_clean", "Report theme"),
+                                   *[(k, "Enum_tpl_" + k, k.capitalize()) for k in ("boardroom", "ledger", "editorial", "signal", "aurora", "terrace")])),
         ("guide", "Setup guide", "bool"),
     ]),
     ("series", "Series", [

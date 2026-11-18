@@ -94,7 +94,7 @@ def general():
       <li><b class="n">3</b><span><strong>Series</strong> · what you compare: supplier, employee</span></li></ol></div>
     <div class="card" style="flex:1"><h3>Free <span class="chip free">FREE</span></h3><ul class="l">
       <li>3 series, fixed scale from zero, gaps for blanks</li><li>Measures as axes, no unpivoting</li>
-      <li>6 templates incl. IBCS style; curves, shapes</li><li>Filtering, bookmarks, keyboard, 12 languages</li></ul></div>
+      <li>Report theme + 6 collection styles; curves, shapes</li><li>Filtering, bookmarks, keyboard, 12 languages</li></ul></div>
   </div>
   <div class="shot"><img src="{data_uri('free.png', 1300)}" alt=""><div class="cap">Supplier evaluation, scored 1 to 5: Acme leads on quality and service, Borealis on delivery and sustainability. Free version, data labels on.</div></div>
 </div>

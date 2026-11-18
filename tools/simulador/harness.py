@@ -10,8 +10,9 @@ Bundles (copias de .tmp/drop tras cada build):
     node build-test.js        && cp -r .tmp/drop .tmp/drop_pro
     .tmp/old = el 1.0.0.0 publicado (_releases/), para comparar el fallo de "medidas como ejes + Serie".
 Uso:  python tools/simulador/harness.py   → tools/simulador/capturas/*.png
+      python tools/simulador/harness.py estilos   → solo los estilos de la colección (50_*)
 """
-import asyncio, csv, io, json, os
+import asyncio, csv, io, json, os, sys
 from collections import OrderedDict
 from playwright.async_api import async_playwright
 
@@ -124,7 +125,7 @@ def dv_medidas_serie_categoria(n_sup=3):
             "categorical": {"categories": [sc], "values": vs}}
 
 
-async def shot(browser, bundle, name, dv, W=760, H=480, view=0, lic=False, hc=False, keys=None, menu=False):
+async def shot(browser, bundle, name, dv, W=760, H=480, view=0, lic=False, hc=False, keys=None, menu=False, clicks=None):
     drop = os.path.join(ROOT, ".tmp", bundle)
     guid = json.load(io.open(os.path.join(drop, "pbiviz.json"), encoding="utf-8"))["visual"]["guid"]
     pg = await browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=2)
@@ -141,6 +142,9 @@ async def shot(browser, bundle, name, dv, W=760, H=480, view=0, lic=False, hc=Fa
     await pg.evaluate("([dv, W, H, vm]) => __v.update({ dataViews: dv ? [__dv(dv)] : [], viewport: {width: W, height: H}, type: 2, operationKind: 0, viewMode: vm })",
                       [dv, W, H, view])
     await pg.wait_for_timeout(500)
+    for sel in clicks or []:
+        await pg.click(sel)
+        await pg.wait_for_timeout(200)
     if keys:
         await pg.focus("g[data-pt][tabindex='0']")
         for k in keys: await pg.keyboard.press(k)
@@ -154,6 +158,10 @@ async def shot(browser, bundle, name, dv, W=760, H=480, view=0, lic=False, hc=Fa
         wm: (document.querySelector('.tcviz-wm') || {}).textContent || '',
         oldwm: !!document.querySelector('.tcrd-watermark'),
         minFont: Math.min(...Array.from(document.querySelectorAll('svg text, svg g[font-size]')).map(t => parseFloat(t.getAttribute('font-size') || '99'))),
+        bg: getComputedStyle(document.querySelector('.tcrd')).backgroundImage !== 'none' ? 'degradado' : getComputedStyle(document.querySelector('.tcrd')).backgroundColor,
+        font: getComputedStyle(document.querySelector('.tcrd')).fontFamily.split(',')[0],
+        series: Array.from(document.querySelectorAll('g[data-series] line')).map(l => l.getAttribute('stroke')),
+        chips: Array.from(document.querySelectorAll('.tcrd-g-chip')).map(c => c.textContent + (c.getAttribute('aria-pressed') === 'true' ? '*' : '')),
         focus: document.activeElement && document.activeElement.getAttribute('data-pt') ? getComputedStyle(document.activeElement.querySelector('.tcrd-hit')).stroke + ' ' + getComputedStyle(document.activeElement.querySelector('.tcrd-hit')).strokeWidth : '' })""")
     if menu:
         info["menu"] = await pg.evaluate("""(axes) => { for (const ax of axes) for (const g of document.querySelectorAll('g[data-pt]')) {
@@ -172,6 +180,23 @@ async def main():
     dyn = lambda c: '"€"0.00' if c == "Price" else '0.0" pts"'
     async with async_playwright() as p:
         b = await p.chromium.launch()
+        # Estilos de la colección (1.0.1): los siete, con objetivo, bandas, anillo de referencia, etiquetas y tabla.
+        full = {"labels": {"show": True}, "valueTable": {"show": True}, "bands": {"show": True}, "reference": {"show": True, "value": 3}}
+        print("Estilos de la colección:")
+        for k in ["clean", "boardroom", "ledger", "editorial", "signal", "aurora", "terrace"]:
+            await shot(b, "drop_pro", "50_estilo_" + k, dv_con_eje(n_sup=3, objects={"style": {"template": k, "guide": False}, **full}), H=560)
+        sm = dv_medidas_serie_categoria(4)
+        sm["metadata"]["objects"] = {"style": {"template": "aurora"}}
+        await shot(b, "drop_pro", "51_aurora_serie_sin_eje", sm)
+        for old, new in [("classic", "ledger"), ("ibcs", "ledger"), ("compact", "clean")]:
+            await shot(b, "drop_pro", f"52_guardado_{old}_se_lee_{new}", dv_con_eje(n_sup=3, objects={"style": {"template": old, "guide": False}}))
+        # Un ajuste puesto a mano gana al estilo; alto contraste gana a todo.
+        await shot(b, "drop_pro", "53_boardroom_rejilla_a_mano", dv_con_eje(objects={"style": {"template": "boardroom", "guide": False}, "grid": {"color": {"solid": {"color": "#FF0000"}}}}))
+        await shot(b, "drop_pro", "54_boardroom_alto_contraste", dv_con_eje(objects={"style": {"template": "boardroom", "guide": False}}), hc=True)
+        # Guía, paso de estilos (editando): rejilla con los siete.
+        await shot(b, "drop_free", "55_guia_estilos", dv_con_eje(objects={"style": {"template": "ibcs"}}), view=1, lic=True, clicks=[".tcrd-g-main"])
+        if "estilos" in sys.argv:
+            await b.close(); return
         print("Bug 5 — medidas como ejes + Serie:")
         await shot(b, "old", "05a_bug_formaB_1.0.0.0", dv_medidas_serie_categoria())
         await shot(b, "drop_pro", "05b_fix_formaB_1.0.1", dv_medidas_serie_categoria(5))

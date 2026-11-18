@@ -304,3 +304,8 @@ R = {
 "Minimum text size": ["Tamaño mínimo del texto", "Tamanho mínimo do texto", "Taille de texte minimale", "Minimale Textgröße", "Dimensione minima del testo", "Minimale tekstgrootte", "Minimalny rozmiar tekstu", "最小のテキスト サイズ", "最小文本大小", "최소 텍스트 크기"],
 "Line patterns per series": ["Trazos distintos por serie", "Traços distintos por série", "Motifs de trait par série", "Linienmuster pro Reihe", "Motivi di linea per serie", "Lijnpatronen per reeks", "Wzory linii dla serii", "系列ごとの線のパターン", "每个系列的线条样式", "계열별 선 패턴"],
 }
+# Estilos de la colección: "Report theme" se traduce; Boardroom, Ledger… son nombres propios y no se traducen
+# (los mismos en Treemap y Line Chart).
+R["Report theme"] = ["Tema del informe", "Tema do relatório", "Thème du rapport", "Berichtsdesign", "Tema del report", "Rapportthema", "Motyw raportu", "レポートのテーマ", "报表主题", "보고서 테마"]
+for _n in ["Boardroom", "Ledger", "Editorial", "Signal", "Aurora", "Terrace"]:
+    R[_n] = [_n] * 10

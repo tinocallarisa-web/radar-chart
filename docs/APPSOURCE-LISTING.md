@@ -1,6 +1,7 @@
 # AppSource Listing — Radar & Spider Chart by TCViz 1.0.1.0
 
-1.0.1.0 (18-11-2026): only the WHAT'S NEW IN 1.0.1 block is new in the Description; the rest is unchanged.
+1.0.1.0 (18-11-2026): in the Description, the WHAT'S NEW IN 1.0.1 block is new and the style bullet under WORKS LIKE A
+NATIVE VISUAL changed (collection styles instead of the six 1.0.0 templates); the rest is unchanged.
 
 Description revised 17-11-2026 after App Advisor (3.5/5): BEST FOR block, plain-language glosses for jargon, Power BI fit
 stated in the second paragraph. Same package; only the Description field changes in Partner Center.
@@ -84,7 +85,7 @@ WORKS LIKE A NATIVE VISUAL
 • Drilldown on a hierarchy, Power BI context menu, standard and report tooltips
 • Keyboard navigation, screen-reader descriptions and high contrast; marker shapes can differ per series
 • The number format of each measure, dynamic format strings included, so labels match the rest of your report; the report language; Format pane and texts in 12 languages
-• Six style templates, including an IBCS style (the international standard for business charts); curved lines, rotation, grid as polygon or circle; format on the canvas; a setup guide and a start screen
+• Report theme or the six TCViz collection styles (Boardroom, Ledger, Editorial, Signal, Aurora, Terrace), free, so a page with other TCViz visuals reads as one report; curved lines, rotation, grid as polygon or circle; format on the canvas; a setup guide and a start screen
 
 PRIVACY
 
@@ -97,7 +98,7 @@ GETTING STARTED
 3. Series (legend): what you compare — supplier, employee, product.
 
 WHAT'S NEW IN 1.0.1
-Dynamic format strings per value: labels, the value table, tooltips and ring values each use their own format. A new Accessibility card: high contrast on demand, focus colour and width, a minimum text size and line patterns per series. Measures as axes now draw one shape per series.
+Dynamic format strings per value: labels, the value table, tooltips and ring values each use their own format. A new Accessibility card: high contrast on demand, focus colour and width, a minimum text size and line patterns per series. Measures as axes now draw one shape per series. The six TCViz collection styles, free.
 
 Documentation, how to read a radar chart and FAQ: https://tinocallarisa-web.github.io/radar-chart/support.html
 Questions: https://github.com/tinocallarisa-web/radar-chart/discussions

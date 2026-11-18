@@ -44,7 +44,7 @@ WHAT IT DOES
 ✅ Empty values drawn as a gap, never as zero
 ✅ Measures as axes, no unpivoting
 ✅ A note when one axis flattens the others, and when values fall outside a fixed scale
-✅ Six style templates, including an IBCS style; curved lines, marker shapes, rotation
+✅ Report theme or six TCViz collection styles; curved lines, marker shapes, rotation
 ✅ Click to filter, highlight, bookmarks, drilldown, keyboard navigation and high contrast
 ✅ The measure's number format, dynamic format strings included; twelve languages
 ✅ No network requests: everything is computed inside your report

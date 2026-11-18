@@ -36,8 +36,10 @@ evaluations per supplier and criterion are added up. Set it to Average.
 
 ## Format pane
 
-- Style template — Clean, Classic, Minimal, Contrast, Compact and IBCS style; your own settings win. The setup
-  guide can be turned back on here.
+- Style template — Report theme (follows the report theme) or one of the six TCViz collection styles: Boardroom,
+  Ledger, Editorial, Signal, Aurora, Terrace — the same looks as the other TCViz visuals, free here. A style sets
+  background, font and colours, but your own settings win and high contrast always wins. The setup guide can be
+  turned back on here.
 - Series — one colour per series, fill opacity, line width, curved lines (they never go beyond the values of the
   two axes they join).
 - Markers — size, shape (circle, square, diamond, triangle, or one per series), colour with conditional

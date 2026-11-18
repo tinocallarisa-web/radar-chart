@@ -208,33 +208,38 @@
             "enumeration": [
               {
                 "value": "clean",
-                "displayName": "Clean",
+                "displayName": "Report theme",
                 "displayNameKey": "Enum_tpl_clean"
               },
               {
-                "value": "classic",
-                "displayName": "Classic",
-                "displayNameKey": "Enum_tpl_classic"
+                "value": "boardroom",
+                "displayName": "Boardroom",
+                "displayNameKey": "Enum_tpl_boardroom"
               },
               {
-                "value": "minimal",
-                "displayName": "Minimal",
-                "displayNameKey": "Enum_tpl_minimal"
+                "value": "ledger",
+                "displayName": "Ledger",
+                "displayNameKey": "Enum_tpl_ledger"
               },
               {
-                "value": "contrast",
-                "displayName": "Contrast",
-                "displayNameKey": "Enum_tpl_contrast"
+                "value": "editorial",
+                "displayName": "Editorial",
+                "displayNameKey": "Enum_tpl_editorial"
               },
               {
-                "value": "compact",
-                "displayName": "Compact",
-                "displayNameKey": "Enum_tpl_compact"
+                "value": "signal",
+                "displayName": "Signal",
+                "displayNameKey": "Enum_tpl_signal"
               },
               {
-                "value": "ibcs",
-                "displayName": "IBCS style",
-                "displayNameKey": "Enum_tpl_ibcs"
+                "value": "aurora",
+                "displayName": "Aurora",
+                "displayNameKey": "Enum_tpl_aurora"
+              },
+              {
+                "value": "terrace",
+                "displayName": "Terrace",
+                "displayNameKey": "Enum_tpl_terrace"
               }
             ]
           }

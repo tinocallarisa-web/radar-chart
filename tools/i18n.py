@@ -98,12 +98,6 @@ T = {
 "Show table (Pro)": ["Mostrar tabla (Pro)", "Mostrar tabela (Pro)", "Afficher le tableau (Pro)", "Tabelle anzeigen (Pro)", "Mostra tabella (Pro)", "Tabel tonen (Pro)", "Pokaż tabelę (Pro)", "テーブルを表示 (Pro)", "显示表格 (Pro)", "표 표시(Pro)"],
 "Color": ["Color", "Cor", "Couleur", "Farbe", "Colore", "Kleur", "Kolor", "色", "颜色", "색"],
 # enumeraciones
-"Clean": ["Limpia", "Limpo", "Épuré", "Klar", "Pulito", "Strak", "Czysty", "クリーン", "简洁", "깔끔"],
-"Classic": ["Clásica", "Clássico", "Classique", "Klassisch", "Classico", "Klassiek", "Klasyczny", "クラシック", "经典", "클래식"],
-"Minimal": ["Mínima", "Mínimo", "Minimal", "Minimal", "Minimale", "Minimaal", "Minimalny", "ミニマル", "极简", "미니멀"],
-"Contrast": ["Contraste", "Contraste", "Contraste", "Kontrast", "Contrasto", "Contrast", "Kontrast", "コントラスト", "对比", "대비"],
-"Compact": ["Compacta", "Compacto", "Compact", "Kompakt", "Compatto", "Compact", "Kompaktowy", "コンパクト", "紧凑", "간결"],
-"IBCS style": ["Estilo IBCS", "Estilo IBCS", "Style IBCS", "IBCS-Stil", "Stile IBCS", "IBCS-stijl", "Styl IBCS", "IBCS スタイル", "IBCS 样式", "IBCS 스타일"],
 "Header background": ["Fondo de la cabecera", "Fundo do cabeçalho", "Arrière-plan de l’en-tête", "Kopfzeilenhintergrund", "Sfondo dell’intestazione", "Achtergrond koptekst", "Tło nagłówka", "ヘッダーの背景", "标题背景", "머리글 배경"],
 "Header text color": ["Color del texto de la cabecera", "Cor do texto do cabeçalho", "Couleur du texte de l’en-tête", "Textfarbe der Kopfzeile", "Colore testo intestazione", "Tekstkleur koptekst", "Kolor tekstu nagłówka", "ヘッダーのテキストの色", "标题文本颜色", "머리글 텍스트 색"],
 "Alternate row color": ["Color de filas alternas", "Cor das linhas alternadas", "Couleur des lignes alternées", "Farbe abwechselnder Zeilen", "Colore righe alternate", "Kleur afwisselende rijen", "Kolor naprzemiennych wierszy", "交互の行の色", "交替行颜色", "교대 행 색"],

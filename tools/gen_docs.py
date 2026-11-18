@@ -79,7 +79,7 @@ FREE_PRO = [
     ("Fill, line width, curved lines, marker size and shape (or one shape per series)", "✓", "✓"),
     ("Grid as polygon or circle, spokes, ring values, rotation", "✓", "✓"),
     ("Data labels, axis labels on two lines when long, legend top, bottom or right", "✓", "✓"),
-    ("6 style templates, including IBCS style; setup guide", "✓", "✓"),
+    ("Report theme and the six TCViz collection styles (Boardroom, Ledger, Editorial, Signal, Aurora, Terrace); setup guide", "✓", "✓"),
     ("Notes on the data: dominant axis that flattens the others, values outside a fixed scale", "✓", "✓"),
     ("Cross-filtering, highlight, bookmarks, drilldown, context menu, report tooltips, keyboard, high contrast", "✓", "✓"),
     ("Number format of the measure, dynamic format strings included; format on the canvas; 12 languages", "✓", "✓"),
@@ -96,7 +96,7 @@ FREE_PRO = [
 ]
 
 FORMAT = [
-    ("Style template", "Clean, Classic, Minimal, Contrast, Compact, IBCS style. A template only fills what you have not set yourself. Setup guide: turn it back on to see the guide again."),
+    ("Style template", "Report theme (the default: follows the report theme) or one of the six TCViz collection styles — Boardroom, Ledger, Editorial, Signal, Aurora, Terrace — the same looks as the other TCViz visuals, all free in this visual. A style sets the background, the font, the series colours and the colours of the grid, labels, target, gap, bands, table and legend, but only fills what you have not set yourself; high contrast always wins. Reports saved with a 1.0.0 template open with the closest style. Setup guide: turn it back on to see the guide again."),
     ("Series", "One colour per series; fill opacity; line width; curved lines (interpolated between neighbouring axes, so a curve never goes beyond the values of the two axes it joins)."),
     ("Markers", "Show; size; shape — circle, square, diamond, triangle or one per series; marker colour with conditional formatting (fx) rules (Pro). Power BI evaluates the rules per point when there is no Series field, like native charts with a Legend field; with Series the fx button is not offered."),
     ("Data labels", "Show; text size and colour."),
@@ -207,7 +207,7 @@ rules and a value table.</p>
 <li>Drag the criteria to <strong>Axis</strong> — quality, price, delivery — and the score to <strong>Values</strong>, set to Average.</li>
 <li>Drag what you compare to <strong>Series (legend)</strong> — supplier, employee, product.</li>
 <li>Or, with survey data in columns, leave Axis empty and drag each question to Values: each measure becomes an axis. A field in Series still draws one shape per value.</li>
-<li>The setup guide in the corner lists the optional fields and the style templates. Pro: add a <strong>Target</strong> or <strong>Small multiples</strong>.</li>
+<li>The setup guide in the corner lists the optional fields and the styles. Pro: add a <strong>Target</strong> or <strong>Small multiples</strong>.</li>
 </ol>
 </div>
 

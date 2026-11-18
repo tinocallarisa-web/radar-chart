@@ -106,30 +106,54 @@ const DEFAULTS: Settings = {
 };
 
 /**
- * Plantillas: un punto de partida. Solo rellenan lo que el usuario no ha tocado: un ajuste escrito
- * a mano (presente en metadata.objects) gana siempre a la plantilla.
+ * Estilos de la colección TCViz, con los mismos tokens que Treemap, Line Chart, KPI Card, Pareto e Histogram: una
+ * página en Boardroom se ve como un solo informe. "clean" = Report theme (por defecto, sigue el tema del informe).
+ * En el Radar los siete son gratis (el reparto Free/Pro no cambia hasta diciembre): sin "(Pro)" ni marca de agua.
+ * Una plantilla solo rellena lo que el usuario no ha tocado: un ajuste escrito a mano (presente en metadata.objects)
+ * gana siempre. Alto contraste manda sobre el estilo (look() devuelve null).
  */
-const TEMPLATES: Record<string, Partial<Settings>> = {
-    clean: {},
-    classic: { gridShape: "circle", fillOpacity: 10, lineWidth: 2, gridColor: "#C8C6C4" },
-    minimal: { fillOpacity: 0, spokes: false, markers: false, ringLabels: false, gridColor: "#E6E4E0" },
-    contrast: { fillOpacity: 35, lineWidth: 3, gridColor: "#A19F9D", axBold: true, axColor: "#252423" },
-    compact: { axFont: 9, gridFont: 8, markerSize: 2.5, legendFont: 9, lineWidth: 1.5 },
-    // Estética de IBCS (sobria, grises, sin adornos). Es un estilo: no afirma cumplimiento del estándar.
-    ibcs: { fillOpacity: 0, lineWidth: 1.5, gridColor: "#D9D9D9", targetColor: "#000000", axColor: "#262626",
-        gridLabelColor: "#595959", legendColor: "#262626", tableColor: "#262626", markers: true, markerSize: 3 },
+const STYLES = ["boardroom", "ledger", "editorial", "signal", "aurora", "terrace"];
+interface StyleTokens { bg: string; text: string; axis: string; grid: string; plan: string; up: string; down: string; series: string[]; font?: string; grad?: string; }
+const STYLE_TOKENS: Record<string, StyleTokens> = {
+    boardroom: { bg: "#16263D", text: "#F2F0E8", axis: "#9FB0C6", grid: "#2A3E5C", plan: "#6FCF97", up: "#6FCF97", down: "#EB8A7B", series: ["#C9A45C", "#8FB8E8", "#EB8A7B", "#6FCF97", "#C5D3E3"] },
+    ledger: { bg: "#FBF8EF", text: "#231F16", axis: "#6E6652", grid: "#D9D2BE", plan: "#946A10", up: "#2F6B3B", down: "#A32A2A", series: ["#7A1F1F", "#3A3528", "#2F6B3B", "#946A10", "#B7AD92"], font: "Georgia, serif" },
+    editorial: { bg: "#FFFFFF", text: "#111111", axis: "#5F5F5F", grid: "#E2E2E2", plan: "#111111", up: "#111111", down: "#D7263D", series: ["#D7263D", "#111111", "#5F5F5F", "#BDBDBD", "#8C1C2B"], font: "Georgia, serif" },
+    signal: { bg: "#FFFFFF", text: "#14202B", axis: "#566472", grid: "#D9DEE4", plan: "#B7791F", up: "#1F7A4D", down: "#C0392B", series: ["#1F7A4D", "#14202B", "#B7791F", "#C0392B", "#9AA5B1"] },
+    aurora: { bg: "#10395E", text: "#FFFFFF", axis: "#C5D3E3", grid: "#3A5C7E", plan: "#FFD27D", up: "#7CE7D0", down: "#FF9DB0", series: ["#7CE7D0", "#FFD27D", "#FF9DB0", "#9DB7FF", "#C5D3E3"], grad: "linear-gradient(135deg, #1B1147, #10395E 50%, #0B5A5E)" },
+    terrace: { bg: "#FBF5EC", text: "#3A2A1E", axis: "#7A6450", grid: "#E5D6C2", plan: "#5E7128", up: "#5E7128", down: "#B5372A", series: ["#B5532A", "#5E7128", "#B5782A", "#B5372A", "#C9A77E"] },
 };
-
-/** Tonos de gris para el estilo IBCS: las series se distinguen por gris y trazo, no por colores del tema. */
-const IBCS_GREYS = ["#262626", "#7F7F7F", "#BFBFBF", "#404040", "#A6A6A6", "#595959"];
+const TEMPLATES: Record<string, Partial<Settings>> = { clean: {} };
+for (const k of STYLES) {
+    const t = STYLE_TOKENS[k];
+    // Textos principales con la tinta del estilo; rejilla, anillos y textos secundarios con su gris; objetivo y
+    // grupos de ejes con el color de plan; brecha y bandas con sus colores de bueno/malo.
+    TEMPLATES[k] = { gridColor: t.grid, gridLabelColor: t.axis, axColor: t.text, labelColor: t.text,
+        targetColor: t.plan, goodColor: t.up, badColor: t.down, refColor: t.axis, groupColor: t.plan,
+        bandLowColor: t.down, bandMidColor: t.grid, bandHighColor: t.up,
+        noteColor: t.axis, legendColor: t.axis, tableColor: t.text, tableHeaderBg: t.grid, tableHeaderColor: t.text,
+        smTitleColor: t.axis, smBorderColor: t.grid, focusColor: t.plan };
+}
+/**
+ * Plantillas de la 1.0.0 (ya no se ofrecen). Un informe guardado con una de ellas se lee como el estilo más parecido,
+ * sin tocar lo guardado: classic (rejilla circular, sobria) → ledger; minimal (sin adornos, mucho blanco) → editorial;
+ * contrast (trazo grueso, texto oscuro) → signal; compact (solo letra pequeña, colores del tema) → clean;
+ * ibcs (grises sobrios) → ledger. Los trazos discontinuos de "ibcs" dependen ahora solo de
+ * Accessibility → Line patterns per series.
+ */
+const LEGACY_TEMPLATES: Record<string, string> = { classic: "ledger", minimal: "editorial", contrast: "signal", compact: "clean", ibcs: "ledger" };
+function templateOf(raw: unknown): string {
+    const v = String(raw ?? "") || "clean";
+    const m = LEGACY_TEMPLATES[v] ?? v;
+    return TEMPLATES[m] ? m : "clean";
+}
 const MARKER_SHAPES = ["circle", "square", "diamond", "triangle"];
 const HC_DASH = ["", "6 3", "2 3", "8 3 2 3", "1 2", "10 4"];
 
 type Objects = powerbi.DataViewObjects | undefined;
 
 function readSettings(objects: Objects): Settings {
-    const tplName = (objects?.["style"]?.["template"] as string) || DEFAULTS.template;
-    const tpl = TEMPLATES[tplName] || {};
+    const tplName = templateOf(objects?.["style"]?.["template"]);
+    const tpl = TEMPLATES[tplName];
     const pick = <K extends keyof Settings>(obj: string, prop: string, key: K): Settings[K] => {
         const raw = objects?.[obj]?.[prop];
         if (raw !== undefined && raw !== null) {
@@ -466,6 +490,18 @@ export class Visual implements IVisual {
         return hcOn || this.s.patterns ? HC_DASH[si % HC_DASH.length] : "";
     }
 
+    /** Tokens del estilo de la colección que se dibuja (null con Report theme o alto contraste). Se fija en cada dibujo. */
+    private look(): StyleTokens | null { return this.curLook; }
+    private curLook: StyleTokens | null = null;
+    private computeLook(): StyleTokens | null {
+        const t = this.s.template;
+        return !this.hc().on && STYLES.indexOf(t) >= 0 ? STYLE_TOKENS[t] : null;
+    }
+    /** Tinta secundaria fija del gráfico (avisos, "n de m series", cero): la del estilo, o la de siempre con Report theme. */
+    private inkDim(fallback = "#83827D"): string {
+        return this.look()?.axis ?? fallback;
+    }
+
     // ── Datos ─────────────────────────────────────────────────────────────────
 
     private name(v: any): string {
@@ -573,7 +609,7 @@ export class Visual implements IVisual {
         this.totalSeries = srcs.length;
         const limit = pro ? MAX_SERIES : FREE_SERIES;
         const used = srcs.slice(0, limit);
-        const isIbcs = s.template === "ibcs";
+        const look = this.computeLook();
         this.series = used.map((src, k) => {
             const r0 = src.rows ? src.rows[0] : -1;
             const own = src.rows
@@ -586,7 +622,7 @@ export class Visual implements IVisual {
                 : src.group
                     ? (this.host.createSelectionIdBuilder().withSeries(vcols, src.group).createSelectionId() as any).getSelector?.()
                     : { metadata: src.value.source.queryName } as any;
-            const color = own || (isIbcs ? IBCS_GREYS[k % IBCS_GREYS.length] : this.host.colorPalette.getColor(src.name || "values").value);
+            const color = own || (look ? look.series[k % look.series.length] : this.host.colorPalette.getColor(src.name || "values").value);
             const format = (src.rows ? dyn(src.value, r0) : firstDyn(src.value)) ?? this.formatOf(src.value);
             return { key: "s" + k, name: src.name, color, format, selector };
         });
@@ -862,7 +898,14 @@ export class Visual implements IVisual {
         if (this.destroyed || !this.lastOptions) return;
         const vp = this.lastOptions.viewport;
         const hc = this.hc();
-        this.root.style.background = hc.on ? hc.bg : (this.s.background || "transparent");
+        this.curLook = this.hasData ? this.computeLook() : null;
+        const look = this.curLook;
+        // Con un estilo de la colección manda su fondo: el tema del informe rellena "background" (visualStyles "*")
+        // y no se distingue de un color puesto a mano.
+        this.root.style.background = hc.on ? hc.bg : (look ? (look.grad ?? look.bg) : (this.s.background || "transparent"));
+        this.root.style.fontFamily = look?.font ?? "";
+        this.root.style.setProperty("--tcrd-rule", look ? look.grid : "#E1DFDD");
+        this.root.style.setProperty("--tcrd-rule2", look ? look.grid : "#EDEBE9");
         this.subSelectable(this.root, "background", this.t("Obj_background", "Background"), powerbi.visuals.SubSelectionStylesType.Shape);
         this.guideEl.style.display = "none";
         if (!this.hasData) {
@@ -894,7 +937,7 @@ export class Visual implements IVisual {
         const hc = this.hc();
         const n = this.axes.length;
         if (n < 3) {
-            const t = this.el("text", { x: W / 2, y: H / 2, "text-anchor": "middle", "font-size": 13, fill: hc.on ? hc.fg : "#605E5C" }, this.svg);
+            const t = this.el("text", { x: W / 2, y: H / 2, "text-anchor": "middle", "font-size": 13, fill: hc.on ? hc.fg : this.inkDim("#605E5C") }, this.svg);
             t.textContent = this.t("UI_NeedAxes", "A radar needs 3 axes or more. Add values to Axis, or more measures to Values.");
             return;
         }
@@ -917,7 +960,7 @@ export class Visual implements IVisual {
                 const colW = Math.min(180, Math.max(...items.map(x => x.label.length)) * fl * 0.58 + fl * 1.6 + 16);
                 let y = rowH;
                 items.forEach(it => { this.legendItem(lg, it.se, it.si, it.label, W - colW, y, fl, s, hc); y += rowH; });
-                if (more) { const t = this.el("text", { x: W - colW, y: y + fl * 0.35, "font-size": Math.max(this.minText, 7, fl - 1), fill: hc.on ? hc.fg : "#83827D" }, lg); t.textContent = more; }
+                if (more) { const t = this.el("text", { x: W - colW, y: y + fl * 0.35, "font-size": Math.max(this.minText, 7, fl - 1), fill: hc.on ? hc.fg : this.inkDim() }, lg); t.textContent = more; }
                 right += colW + 6;
             } else {
                 const y = s.legendPos === "bottom" ? H - rowH / 2 - 2 : rowH / 2 + 2;
@@ -928,7 +971,7 @@ export class Visual implements IVisual {
                     this.legendItem(lg, it.se, it.si, it.label, x, y, fl, s, hc);
                     x += w + 10;
                 }
-                if (more && x < W - 60) { const t = this.el("text", { x, y: y + fl * 0.35, "font-size": Math.max(this.minText, 7, fl - 1), fill: hc.on ? hc.fg : "#83827D" }, lg); t.textContent = more; }
+                if (more && x < W - 60) { const t = this.el("text", { x, y: y + fl * 0.35, "font-size": Math.max(this.minText, 7, fl - 1), fill: hc.on ? hc.fg : this.inkDim() }, lg); t.textContent = more; }
                 if (s.legendPos === "bottom") bottom += rowH + 4; else top += rowH + 4;
             }
         }
@@ -997,7 +1040,7 @@ export class Visual implements IVisual {
         const axes = this.panelAxes(panel);
         const n = axes.length;
         if (n < 3) {
-            const t = this.el("text", { x: W / 2, y: y0 + H / 2, "text-anchor": "middle", "font-size": 12, fill: hc.on ? hc.fg : "#605E5C" }, g);
+            const t = this.el("text", { x: W / 2, y: y0 + H / 2, "text-anchor": "middle", "font-size": 12, fill: hc.on ? hc.fg : this.inkDim("#605E5C") }, g);
             t.textContent = this.t("UI_PanelFewAxes", "Fewer than 3 axes in this panel.");
             return;
         }
@@ -1048,7 +1091,7 @@ export class Visual implements IVisual {
         const nr = sc0.rings.length - 1;
         for (let k = 1; k <= nr; k++) this.el("path", { d: ring(k / nr), fill: "none", stroke: gc, "stroke-width": 1, "stroke-opacity": hc.on ? 0.5 : 1 }, grid);
         if (!perAxis && sc0.lo < 0 && sc0.hi > 0) {
-            this.el("path", { d: ring(frac(0, sc0, false)), fill: "none", stroke: hc.on ? hc.fg : "#83827D", "stroke-width": 1.2, "stroke-dasharray": "4 3" }, grid);
+            this.el("path", { d: ring(frac(0, sc0, false)), fill: "none", stroke: hc.on ? hc.fg : this.inkDim(), "stroke-width": 1.2, "stroke-dasharray": "4 3" }, grid);
         }
         if (s.spokes) axes.forEach((_, j) => { const [x, y] = at(1, j); this.el("line", { x1: cx, y1: cy, x2: x, y2: y, stroke: gc, "stroke-width": 1, "stroke-opacity": hc.on ? 0.5 : 1 }, grid); });
 
@@ -1201,7 +1244,7 @@ export class Visual implements IVisual {
                 pg.setAttribute("aria-label", `${se.name ? se.name + " · " : ""}${a.name}: ${this.pointFmt(p)(p.value ?? 0)}`);
                 const fill = hc.on ? hc.bg : (p.rule || s.markerColor || se.color);
                 if (s.markers || p.rule) this.el("path", { d: this.markerPath(s.markerShape === "bySeries" ? MARKER_SHAPES[si % MARKER_SHAPES.length] : s.markerShape, x, y, r),
-                    fill, stroke: hc.on ? hc.fg : "#FFFFFF", "stroke-width": hc.on ? 1.5 : 1 }, pg);
+                    fill, stroke: hc.on ? hc.fg : (this.look()?.bg ?? "#FFFFFF"), "stroke-width": hc.on ? 1.5 : 1 }, pg);
                 // Zona de clic mayor que el marcador
                 this.el("circle", { cx: x.toFixed(1), cy: y.toFixed(1), r: Math.max(7, r + 3), fill: "transparent", class: "tcrd-hit" }, pg);
                 const c = Math.cos(ang(j)), sn = Math.sin(ang(j));
@@ -1245,7 +1288,7 @@ export class Visual implements IVisual {
             if (m !== null) {
                 const t = this.el("text", { x: cx, y: cy - 2, "text-anchor": "middle", "font-size": Math.max(this.minText, 10, Math.min(22, R / 6)), "font-weight": 700, fill: hc.on ? hc.fg : this.series[0].color }, g);
                 t.textContent = Math.round(m * 100) + "%";
-                const c2 = this.el("text", { x: cx, y: cy + Math.max(9, Math.min(14, R / 10)), "text-anchor": "middle", "font-size": Math.max(this.minText, 7, Math.min(11, R / 12)), fill: hc.on ? hc.fg : "#83827D" }, g);
+                const c2 = this.el("text", { x: cx, y: cy + Math.max(9, Math.min(14, R / 10)), "text-anchor": "middle", "font-size": Math.max(this.minText, 7, Math.min(11, R / 12)), fill: hc.on ? hc.fg : this.inkDim() }, g);
                 c2.textContent = this.t("UI_AxesMean", "axes mean (% of scale)");
             }
         }
@@ -1377,7 +1420,7 @@ export class Visual implements IVisual {
         this.noteEl.style.display = msgs.length ? "block" : "none";
         this.noteEl.textContent = msgs.join(" · ");
         const hc = this.hc();
-        this.noteEl.style.color = hc.on ? hc.fg : "#83827D";
+        this.noteEl.style.color = hc.on ? hc.fg : this.inkDim();
         this.noteEl.style.fontSize = Math.max(10, this.minText) + "px";
         return msgs.length > 0;
     }
@@ -1518,7 +1561,6 @@ export class Visual implements IVisual {
             titulo.textContent = this.t("Guide_Style", "Pick a style");
             const rejilla = document.createElement("div"); rejilla.className = "tcrd-g-grid";
             for (const nombre of Object.keys(TEMPLATES)) {
-                const tpl = { ...DEFAULTS, ...TEMPLATES[nombre] };
                 const chip = document.createElement("button");
                 chip.type = "button";
                 const actual = nombre === this.s.template;
@@ -1526,9 +1568,9 @@ export class Visual implements IVisual {
                 chip.className = "tcrd-g-chip";
                 chip.style.borderColor = actual ? azul : "#C8C6C4";
                 chip.style.borderWidth = actual ? "2px" : "1px";
-                chip.appendChild(this.miniRadar(tpl, nombre === "ibcs" ? IBCS_GREYS[0] : this.series[0]?.color || "#2B6CB0", hc));
+                chip.appendChild(this.miniRadar(nombre, hc));
                 const etq = document.createElement("div");
-                etq.textContent = this.t("Enum_tpl_" + nombre, nombre.charAt(0).toUpperCase() + nombre.slice(1));
+                etq.textContent = this.t("Enum_tpl_" + nombre, nombre === "clean" ? "Report theme" : nombre.charAt(0).toUpperCase() + nombre.slice(1));
                 chip.appendChild(etq);
                 chip.addEventListener("click", () => {
                     this.host.persistProperties({ merge: [{ objectName: "style", selector: null as any, properties: { template: nombre } }] });
@@ -1542,20 +1584,27 @@ export class Visual implements IVisual {
         el.appendChild(pie);
     }
 
-    /** Miniatura de una plantilla: un radar de cinco ejes con su rejilla y su relleno. */
-    private miniRadar(t: Settings, color: string, hc: boolean): SVGSVGElement {
+    /** Miniatura de un estilo: un radar de cinco ejes con su fondo, su rejilla y sus dos primeras series. */
+    private miniRadar(name: string, hc: boolean): SVGSVGElement {
         const svg = document.createElementNS(SVG, "svg") as SVGSVGElement;
         svg.setAttribute("width", "60"); svg.setAttribute("height", "44"); svg.setAttribute("aria-hidden", "true");
-        const cx = 30, cy = 23, R = 18;
+        const tok = STYLE_TOKENS[name];
+        if (tok && !hc) svg.style.background = tok.grad ?? tok.bg;
+        const pal: any = this.host.colorPalette;
+        // Report theme: los colores del tema del informe (los mismos que reciben las series).
+        const cols = tok ? tok.series : [this.series[0]?.color || pal?.getColor?.("tcviz-mini-0")?.value || "#2B6CB0",
+            this.series[1]?.color || pal?.getColor?.("tcviz-mini-1")?.value || "#C4314B"];
+        const gridC = tok ? tok.grid : DEFAULTS.gridColor;
+        const ink = hc ? "#FFFFFF" : "";
+        const cx = 30, cy = 22, R = 17;
         const at = (f: number, j: number) => [cx + Math.cos(-Math.PI / 2 + 2 * Math.PI * j / 5) * R * f, cy + Math.sin(-Math.PI / 2 + 2 * Math.PI * j / 5) * R * f];
         const poly = (fr: number[]) => "M" + fr.map((f, j) => at(f, j).map(v => v.toFixed(1)).join(",")).join("L") + "Z";
-        for (const f of [0.5, 1]) {
-            const d = t.gridShape === "circle" ? `M${cx - R * f},${cy}a${R * f},${R * f} 0 1,0 ${2 * R * f},0a${R * f},${R * f} 0 1,0 ${-2 * R * f},0Z` : poly([f, f, f, f, f]);
-            this.el("path", { d, fill: "none", stroke: hc ? "#FFFFFF" : t.gridColor, "stroke-width": 1 }, svg);
-        }
-        const d = poly([0.9, 0.55, 0.8, 0.45, 0.7]);
-        if (t.fillOpacity > 0 && !hc) this.el("path", { d, fill: color, "fill-opacity": t.fillOpacity / 100 }, svg);
-        this.el("path", { d, fill: "none", stroke: hc ? "#FFFFFF" : color, "stroke-width": Math.min(3, t.lineWidth) }, svg);
+        for (const f of [0.5, 1]) this.el("path", { d: poly([f, f, f, f, f]), fill: "none", stroke: ink || gridC, "stroke-width": 1 }, svg);
+        [[0.9, 0.55, 0.8, 0.45, 0.7], [0.5, 0.85, 0.4, 0.75, 0.55]].forEach((fr, k) => {
+            const d = poly(fr), c = cols[k % cols.length];
+            if (!hc) this.el("path", { d, fill: c, "fill-opacity": 0.18 }, svg);
+            this.el("path", { d, fill: "none", stroke: ink || c, "stroke-width": 1.5, "stroke-dasharray": hc && k ? "3 2" : "" }, svg);
+        });
         return svg;
     }
 
@@ -2050,9 +2099,8 @@ export class Visual implements IVisual {
 
         return { cards: [
             card("style", "Style template", [
-                dd("style", "template", "Template", s.template, [["clean", "Enum_tpl_clean", "Clean"], ["classic", "Enum_tpl_classic", "Classic"],
-                    ["minimal", "Enum_tpl_minimal", "Minimal"], ["contrast", "Enum_tpl_contrast", "Contrast"], ["compact", "Enum_tpl_compact", "Compact"],
-                    ["ibcs", "Enum_tpl_ibcs", "IBCS style"]]),
+                dd("style", "template", "Template", s.template, [["clean", "Enum_tpl_clean", "Report theme"],
+                    ...STYLES.map(k => [k, "Enum_tpl_" + k, k.charAt(0).toUpperCase() + k.slice(1)] as [string, string, string])]),
                 tog("style", "guide", "Setup guide", s.guide),
             ]),
             card("series", "Series", [

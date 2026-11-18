@@ -16,4 +16,4 @@ HR:
 skills matrix, employee competencies, team skills gap
 
 Power BI general:
-Power BI tutorial, Power BI tips, Power BI dashboard, IBCS, survey analysis
+Power BI tutorial, Power BI tips, Power BI dashboard, survey analysis
