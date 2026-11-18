@@ -160,7 +160,7 @@ una(2, "The gap on every axis", "Target (Pro): one supplier against the required
      "Acme Metals is 0.9 short on delivery and 0.8 on sustainability, and above target on quality and risk.",
      "With several series, the gaps appear for the series you select; a % of target scale is also available."])
 w = lambda px: f"{px * 0.82:.0f}px"   # las tres a la misma escala: 0,82 px de imagen por px del visual
-h3 = pagina("Screenshot_3", cabecera("Readable at any size", "The same visual and settings in a large, medium and small slot, all at the same scale: axis names shorten and the legend keeps what fits.") + f"""
+h3 = pagina("Screenshot_3", cabecera("Readable at any size", "The same visual and settings in a large, medium and small slot, all at the same scale: axis names shorten and the legend wraps; whatever does not fit is counted.") + f"""
 <div class="tres"><div class="card l"><b>Large · 900 × 520</b><img src="{cap('61_size_l')}" style="width:{w(900)}"></div>
 <div class="card"><b>Medium · 520 × 330</b><img src="{cap('61_size_m')}" style="width:{w(520)}"></div>
 <div class="card"><b>Small · 300 × 170</b><img src="{cap('61_size_s')}" style="width:{w(300)}"></div></div>""" + PIE, UNA)
