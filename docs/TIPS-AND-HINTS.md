@@ -76,6 +76,10 @@ evaluations per supplier and criterion are added up. Set it to Average.
 - Conditional formatting (fx) on markers works without a Series field; with Series, Power BI does not evaluate
   the rule per point, as with native charts that have a Legend field.
 - More than 4 or 5 shapes on one radar is hard to read: use small multiples or one radar per series.
+- When the legend does not fit on one row it wraps; whatever still does not fit is counted as "+N". In a small radar the
+  ring labels that would overlap are skipped, and a gap of zero is written 0, never +0.
+- Series colours:with more series than the style has colours, the next ones take a lighter or darker shade of the same palette, so no two share a colour.
+- Measures as axes with a field in Series (no Axis) gives one shape per value of the Series field, with its legend.
 - Dynamic format strings: each value keeps its own format in data labels, the value table, the tooltip and the
   ring values.
 
